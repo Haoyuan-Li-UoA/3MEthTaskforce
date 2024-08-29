@@ -167,12 +167,12 @@ if args.dataset_name in ['enron', 'SocialEvo', 'uci']:
     print(f'the original dataset of {args.dataset_name} is unavailable, directly use the processed dataset by previous works.')
 else:
     # bipartite dataset
-    if args.dataset_name in ['wikipedia', 'reddit', 'mooc', 'lastfm', 'myket']:
+    if args.dataset_name in ['wikipedia', 'reddit', 'mooc', 'lastfm', 'myket', 'crypto']:
         preprocess_data(dataset_name=args.dataset_name, bipartite=True, node_feat_dim=args.node_feat_dim)
     else:
         preprocess_data(dataset_name=args.dataset_name, bipartite=False, node_feat_dim=args.node_feat_dim)
     print(f'{args.dataset_name} is processed successfully.')
 
-    if args.dataset_name not in ['crypto']:
+    if args.dataset_name not in ['crypto', 'myket']:
         check_data(args.dataset_name)
     print(f'{args.dataset_name} passes the checks successfully.')
