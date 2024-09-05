@@ -119,6 +119,7 @@ Origin Data/*
 processed_data/*
 !processed_data/crypto/
 !processed_data/crypto/**
+!processed_data/textual/**
 
 saved_models/
 
