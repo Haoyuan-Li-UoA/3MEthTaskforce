@@ -3,7 +3,7 @@ from preprocess_data import DATASETS
 from original_data_treatment import original_data_treatment
 
 # 调用处理函数
-original_data_treatment(token_num=800,
+original_data_treatment(token_num=1000,
                         sparse=True,
                         random_sample=False,
                         dense=False,
