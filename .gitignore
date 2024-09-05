@@ -109,11 +109,17 @@ ENV/
 
 # data
 .vscode/
-DG_data/*/*
-!DG_data/myket/*
-processed_data/*/*
-!processed_data/myket/*
+# 忽略 Origin Data 文件夹中的所有内容
+Origin Data/*
+
+# 但不忽略 crypto 文件夹及其内容
+!Origin Data/crypto/
+!Origin Data/crypto/**
+
+processed_data/*
+!processed_data/crypto/
+!processed_data/crypto/**
 
 saved_models/
-processed_data/
-Origin Data/
+
+

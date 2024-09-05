@@ -5,6 +5,7 @@ import argparse
 from pandas.testing import assert_frame_equal
 from distutils.dir_util import copy_tree
 
+
 DATASETS = ['crypto', 'transaction', 'transaction_token_recording', 'transaction_token_general',
             'transaction_global', 'transaction_token_general_recording', 'transaction_token_general_global',
             'transaction_token_global_recording', 'transaction_token_all']
