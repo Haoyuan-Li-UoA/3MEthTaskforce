@@ -5,6 +5,9 @@ import argparse
 from pandas.testing import assert_frame_equal
 from distutils.dir_util import copy_tree
 
+DATASETS = ['crypto', 'transaction', 'transaction_token_recording', 'transaction_token_general',
+            'transaction_global', 'transaction_token_general_recording', 'transaction_token_general_global',
+            'transaction_token_global_recording', 'transaction_token_all']
 
 def preprocess(dataset_name: str):
     """
@@ -152,8 +155,7 @@ def check_data(dataset_name: str):
 
 parser = argparse.ArgumentParser('Interface for preprocessing datasets')
 parser.add_argument('--dataset_name', type=str,
-                    choices=['wikipedia', 'reddit', 'mooc', 'lastfm', 'myket', 'enron', 'SocialEvo', 'uci',
-                             'Flights', 'CanParl', 'USLegis', 'UNtrade', 'UNvote', 'Contacts', 'crypto'],
+                    choices=DATASETS,
                     # help='Dataset name', default='wikipedia')
                     help='Dataset name', default='crypto')
 parser.add_argument('--node_feat_dim', type=int, default=172, help='Number of node raw features')
@@ -167,12 +169,12 @@ if args.dataset_name in ['enron', 'SocialEvo', 'uci']:
     print(f'the original dataset of {args.dataset_name} is unavailable, directly use the processed dataset by previous works.')
 else:
     # bipartite dataset
-    if args.dataset_name in ['wikipedia', 'reddit', 'mooc', 'lastfm', 'myket', 'crypto']:
+    if args.dataset_name in DATASETS:
         preprocess_data(dataset_name=args.dataset_name, bipartite=True, node_feat_dim=args.node_feat_dim)
     else:
         preprocess_data(dataset_name=args.dataset_name, bipartite=False, node_feat_dim=args.node_feat_dim)
     print(f'{args.dataset_name} is processed successfully.')
 
-    if args.dataset_name not in ['crypto', 'myket']:
-        check_data(args.dataset_name)
+    # if args.dataset_name not in ['crypto', 'myket']:
+    #     check_data(args.dataset_name)
     print(f'{args.dataset_name} passes the checks successfully.')

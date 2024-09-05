@@ -9,7 +9,9 @@ import os
 
 # Function 1: transaction_and_token_price_aggregate
 def transaction_and_token_price_aggregate(transaction, token_price):
-    for index, row in tqdm(transaction.iterrows()):
+
+    transaction_price = transaction
+    for index, row in tqdm(transaction_price.iterrows()):
         token_address = row['token_address']
         block_timestamp = pd.to_datetime(row['block_timestamp']).date()
 
@@ -24,16 +26,16 @@ def transaction_and_token_price_aggregate(transaction, token_price):
             if not price_record.empty:
                 # Assuming we want the first record if multiple exist
                 closest_price = price_record.iloc[0]
-                transaction.loc[index, 'price'] = closest_price['price']
-                transaction.loc[index, 'market_caps'] = closest_price['market_caps']
-                transaction.loc[index, 'total_volumes'] = closest_price['total_volumes']
+                transaction_price.loc[index, 'price'] = closest_price['price']
+                transaction_price.loc[index, 'market_caps'] = closest_price['market_caps']
+                transaction_price.loc[index, 'total_volumes'] = closest_price['total_volumes']
             else:
                 # Handle case where no price is found for the specific date
-                transaction.loc[index, 'price'] = 0
-                transaction.loc[index, 'market_caps'] = 0
-                transaction.loc[index, 'total_volumes'] = 0
+                transaction_price.loc[index, 'price'] = 0
+                transaction_price.loc[index, 'market_caps'] = 0
+                transaction_price.loc[index, 'total_volumes'] = 0
 
-    return transaction
+    return transaction_price
 
 
 def adjust_values(df):
@@ -59,11 +61,13 @@ def adjust_values(df):
 
 # Function 2: transaction_and_token_general_info_aggregate
 def transaction_and_token_general_info_aggregate(transaction, token_general_info):
+
+    transaction_general = transaction
     decimal = []
     trust_score = []
 
     # 遍历transaction的每一条记录
-    for _, row in tqdm(transaction.iterrows()):
+    for _, row in tqdm(transaction_general.iterrows()):
         token_address = row['token_address']
 
         # 获取对应的token general info数据
@@ -74,28 +78,30 @@ def transaction_and_token_general_info_aggregate(transaction, token_general_info
             decimal.append(None)
             trust_score.append(None)
 
-    transaction['decimal'] = decimal
-    transaction['trust_score'] = trust_score
+    transaction_general['decimal'] = decimal
+    transaction_general['trust_score'] = trust_score
 
-    transaction = adjust_values(transaction)
+    transaction_general = adjust_values(transaction_general)
 
-    return transaction
+    return transaction_general
 
 
 # Function 3: transaction_and_global_info_aggregate
 def transaction_and_global_info_aggregate(transaction, global_info):
     # 确保时间戳格式正确
 
-    transaction['block_timestamp'] = pd.to_datetime(transaction['block_timestamp'])
+    transaction_global = transaction
+
+    transaction_global['block_timestamp'] = pd.to_datetime(transaction_global['block_timestamp'])
     global_info['DateTime'] = pd.to_datetime(global_info['DateTime'])
 
     # 初始化新列
     global_columns = global_info.columns.difference(['DateTime'])
     for col in global_columns:
-        transaction[col] = None
+        transaction_global[col] = None
 
     # 按日期匹配global info数据
-    for idx, row in tqdm(transaction.iterrows()):
+    for idx, row in tqdm(transaction_global.iterrows()):
         trans_date = row['block_timestamp'].date()
 
         # 找到对应日期的global info
@@ -103,9 +109,9 @@ def transaction_and_global_info_aggregate(transaction, global_info):
 
         if not global_record.empty:
             for col in global_columns:
-                transaction.at[idx, col] = global_record[col].values[0]
+                transaction_global.at[idx, col] = global_record[col].values[0]
 
-    return transaction
+    return transaction_global
 
 
 def remove_records_after_timestamp(df, timestamp="2024-07-23 00:00:00"):
@@ -133,6 +139,8 @@ def create_or_get_feature_folder(feature_combination):
     # 4. 如果没有同名文件夹就创建一个，如果有就进入
     if not os.path.exists(feature_folder_path):
         os.makedirs(feature_folder_path)
+
+    feature_folder_path = feature_folder_path + "./"
 
     # 5. 返回路径
     return feature_folder_path
@@ -180,7 +188,7 @@ def transform_save_data(data, path="./", feature_combination='test'):
     standard_data.to_csv(path+file_name, index=False)
 
 
-TEST = True
+TEST = False
 
 if TEST:
     paths = data_path_researcher()

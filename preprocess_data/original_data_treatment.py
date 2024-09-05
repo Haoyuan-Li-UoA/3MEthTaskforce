@@ -2,10 +2,11 @@ from data_selector import data_combination, data_path_researcher
 from data_aggregator import transaction_filter, token_recording_filter, token_general_info_filter, global_data_aggregate
 from feature_selector import transform_save_data, transaction_and_token_price_aggregate, transaction_and_token_general_info_aggregate, transaction_and_global_info_aggregate
 
+
+# print(1)
 paths = data_path_researcher()
 transaction_path = paths["token_transaction_path"]
 sampled_tokens = data_combination(num=100, sparse=True, path=transaction_path)
-print(len(sampled_tokens))
 transaction_df = transaction_filter(sampled_tokens, transaction_path)
 transform_save_data(transaction_df, feature_combination="transaction")
 
