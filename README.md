@@ -17,7 +17,7 @@ Model = ['JODIE', 'DyRep', 'TGAT', 'TGN', 'CAWN', 'TCL', 'GraphMixer', 'DyGForme
 ### Link Prediction Task Train
 
 ```{bash}
-python train_link_prediction.py --dataset_name crypto --model_name GraphMixer --load_test_configs --num_runs 5 --gpu 0
+python train_link_prediction.py --dataset_name transaction --model_name DyGFormer --load_test_configs --num_runs 5 --gpu 0
 ```
 
 **Sub-task: Transaction Type Prediction Train**
