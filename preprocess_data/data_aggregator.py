@@ -6,14 +6,22 @@ from tqdm import tqdm
 
 
 # Function 1: transaction_filter
-def transaction_filter(token_list, path):
+def transaction_filter(token_list, path, num=200):
     df_merge = pd.DataFrame()
 
     for token in tqdm(token_list):
         file_path = os.path.join(path, f"{token}.csv")
         df = pd.read_csv(file_path)
         df_filtered = df[['token_address', 'from_address', 'to_address', 'value', 'block_timestamp']]
-        df_merge = pd.concat([df_merge, df_filtered], ignore_index=True)
+
+        # 判断 df_filtered 的行数是否小于等于 num
+        if len(df_filtered) <= num:
+            # 如果 df_filtered 的数据少于或等于 num，直接全部合并
+            df_merge = pd.concat([df_merge, df_filtered], ignore_index=True)
+        else:
+            # 如果数据多于 num，则进行采样后再合并
+            df_sampled = df_filtered.sample(n=num, replace=False)
+            df_merge = pd.concat([df_merge, df_sampled], ignore_index=True)
 
     return df_merge
 
@@ -123,13 +131,15 @@ def global_data_aggregate(path):
     merged_df = fix_global_data(merged_df)
     return merged_df
 
+def textual_data(path):
+    pass
 
 TEST = False
 
 if TEST:
     paths = data_path_researcher()
     transaction_path = paths["token_transaction_path"]
-    sampled_tokens = data_combination(num=10, random_sample=True, path=transaction_path)
+    sampled_tokens = data_combination(num=3880, random_sample=True, path=transaction_path)
     # Testing the functions
     TEST1 = False
 

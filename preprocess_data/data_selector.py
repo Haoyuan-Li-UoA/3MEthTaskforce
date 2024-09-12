@@ -37,6 +37,7 @@ def data_combination(num=100, sparse=False, random_sample=False, dense=False, to
 
     # 生成token address列表
     token_address_list = [file[0] for file in files_info_sorted]
+    assert num <= len(token_address_list), f"num value: {num} should smaller than the length of token_list: {len(token_address_list)}"
 
     if sparse:
         # 从小文件开始选，直到达到num的数量

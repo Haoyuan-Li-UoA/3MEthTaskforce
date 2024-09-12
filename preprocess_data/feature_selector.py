@@ -3,7 +3,6 @@ from data_selector import data_combination, data_path_researcher
 from data_aggregator import transaction_filter, token_recording_filter, token_general_info_filter, global_data_aggregate
 from tqdm import tqdm
 from sklearn.preprocessing import MinMaxScaler
-import hashlib
 import os
 
 
@@ -113,6 +112,8 @@ def transaction_and_global_info_aggregate(transaction, global_info):
 
     return transaction_global
 
+def transaction_and_textual_info_aggregate(transaction, ):
+    pass
 
 def remove_records_after_timestamp(df, timestamp="2024-07-23 00:00:00"):
     # 确保 block_timestamp 列为 datetime 类型

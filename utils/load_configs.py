@@ -29,7 +29,8 @@ def get_link_prediction_args(is_evaluation: bool = False):
     parser.add_argument('--num_heads', type=int, default=2, help='number of heads used in attention layer')
     parser.add_argument('--num_layers', type=int, default=2, help='number of model layers')
     parser.add_argument('--walk_length', type=int, default=1, help='length of each random walk')
-    parser.add_argument('--time_gap', type=int, default=2000, help='time gap for neighbors to compute node features')
+    # parser.add_argument('--time_gap', type=int, default=2000, help='time gap for neighbors to compute node features')
+    parser.add_argument('--time_gap', type=int, default=604800, help='time gap for neighbors to compute node features')
     parser.add_argument('--time_feat_dim', type=int, default=100, help='dimension of the time embedding')
     parser.add_argument('--position_feat_dim', type=int, default=172, help='dimension of the position embedding')
     parser.add_argument('--edge_bank_memory_mode', type=str, default='unlimited_memory', help='how memory of EdgeBank works',
@@ -42,12 +43,12 @@ def get_link_prediction_args(is_evaluation: bool = False):
     parser.add_argument('--learning_rate', type=float, default=0.0001, help='learning rate')
     parser.add_argument('--dropout', type=float, default=0.1, help='dropout rate')
     # parser.add_argument('--num_epochs', type=int, default=100, help='number of epochs')
-    parser.add_argument('--num_epochs', type=int, default=30, help='number of epochs')
+    parser.add_argument('--num_epochs', type=int, default=40, help='number of epochs')
     parser.add_argument('--optimizer', type=str, default='Adam', choices=['SGD', 'Adam', 'RMSprop'], help='name of optimizer')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='weight decay')
     parser.add_argument('--patience', type=int, default=20, help='patience for early stopping')
-    parser.add_argument('--val_ratio', type=float, default=0.35, help='ratio of validation set')
-    parser.add_argument('--test_ratio', type=float, default=0.35, help='ratio of test set')
+    parser.add_argument('--val_ratio', type=float, default=0.15, help='ratio of validation set')
+    parser.add_argument('--test_ratio', type=float, default=0.15, help='ratio of test set')
     parser.add_argument('--num_runs', type=int, default=5, help='number of runs')
     parser.add_argument('--test_interval_epochs', type=int, default=10, help='how many epochs to perform testing once')
     parser.add_argument('--negative_sample_strategy', type=str, default='inductive', choices=['random', 'historical', 'inductive'],
@@ -120,6 +121,7 @@ def load_link_prediction_test_configs(args: argparse.Namespace):
     elif args.model_name == 'DyGFormer':
         args.num_layers = 2
         args.max_input_sequence_length = 32
+        args.num_epochs = 20
         args.patch_size = 1
         assert args.max_input_sequence_length % args.patch_size == 0
         args.dropout = 0.1
@@ -148,7 +150,7 @@ def get_node_classification_args():
     parser.add_argument('--num_heads', type=int, default=2, help='number of heads used in attention layer')
     parser.add_argument('--num_layers', type=int, default=2, help='number of model layers')
     parser.add_argument('--walk_length', type=int, default=1, help='length of each random walk')
-    parser.add_argument('--time_gap', type=int, default=2000, help='time gap for neighbors to compute node features')
+    parser.add_argument('--time_gap', type=int, default=604800, help='time gap for neighbors to compute node features')
     parser.add_argument('--time_feat_dim', type=int, default=100, help='dimension of the time embedding')
     parser.add_argument('--position_feat_dim', type=int, default=172, help='dimension of the position embedding')
     parser.add_argument('--patch_size', type=int, default=1, help='patch size')
@@ -157,7 +159,7 @@ def get_node_classification_args():
     parser.add_argument('--learning_rate', type=float, default=0.0001, help='learning rate')
     parser.add_argument('--dropout', type=float, default=0.1, help='dropout rate')
     # parser.add_argument('--num_epochs', type=int, default=100, help='number of epochs')
-    parser.add_argument('--num_epochs', type=int, default=30, help='number of epochs')
+    parser.add_argument('--num_epochs', type=int, default=40, help='number of epochs')
     parser.add_argument('--optimizer', type=str, default='Adam', choices=['SGD', 'Adam', 'RMSprop'], help='name of optimizer')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='weight decay')
     parser.add_argument('--patience', type=int, default=20, help='patience for early stopping')
@@ -217,6 +219,7 @@ def load_node_classification_test_configs(args: argparse.Namespace):
         args.num_layers = 2
         args.max_input_sequence_length = 32
         args.patch_size = 1
+        args.num_epochs = 20
         assert args.max_input_sequence_length % args.patch_size == 0
         args.dropout = 0.1
     else:

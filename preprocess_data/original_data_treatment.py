@@ -3,12 +3,12 @@ from data_aggregator import transaction_filter, token_recording_filter, token_ge
 from feature_selector import transform_save_data, transaction_and_token_price_aggregate, transaction_and_token_general_info_aggregate, transaction_and_global_info_aggregate
 
 
-def original_data_treatment(token_num, sparse=True, random_sample=False, dense=False, token_list=None):
+def original_data_treatment(token_num, sparse=True, random_sample=False, dense=False, token_list=None, each_token=200):
 
     paths = data_path_researcher()
     transaction_path = paths["token_transaction_path"]
     sampled_tokens = data_combination(num=token_num, sparse=sparse, random_sample=random_sample, dense=dense, token_list=token_list, path=transaction_path)
-    transaction_df = transaction_filter(sampled_tokens, transaction_path)
+    transaction_df = transaction_filter(sampled_tokens, transaction_path, num=each_token)
     transform_save_data(transaction_df, feature_combination="transaction")
 
 

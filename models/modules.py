@@ -264,3 +264,5 @@ class TransformerEncoder(nn.Module):
         outputs = self.norm_layers[1](outputs + self.dropout(hidden_states))
 
         return outputs
+
+

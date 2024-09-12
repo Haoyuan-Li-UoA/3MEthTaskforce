@@ -2,7 +2,8 @@
 
 ```{bash}
 cd preprocess_data/
-python data_sampler.py  
+python data_sampler.py --token_num 200 --random_sample --each_token 500
+python preprocess_all_data.py
 ```
 
 ### Dataset Name
@@ -17,7 +18,7 @@ Model = ['JODIE', 'DyRep', 'TGAT', 'TGN', 'CAWN', 'TCL', 'GraphMixer', 'DyGForme
 ### Link Prediction Task Train
 
 ```{bash}
-python train_link_prediction.py --dataset_name transaction --model_name DyGFormer --load_test_configs --num_runs 5 --gpu 0
+python train_link_prediction.py --dataset_name crypto --model_name DyGFormer --load_test_configs --num_runs 5 --gpu 0
 ```
 
 **Sub-task: Transaction Type Prediction Train**
