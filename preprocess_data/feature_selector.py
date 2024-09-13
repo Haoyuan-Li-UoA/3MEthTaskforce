@@ -74,8 +74,8 @@ def transaction_and_token_general_info_aggregate(transaction, token_general_info
             decimal.append(token_general_info[token_address][0])
             trust_score.append(token_general_info[token_address][1])
         else:
-            decimal.append(None)
-            trust_score.append(None)
+            decimal.append(0)
+            trust_score.append(0)
 
     transaction_general['decimal'] = decimal
     transaction_general['trust_score'] = trust_score
@@ -112,8 +112,52 @@ def transaction_and_global_info_aggregate(transaction, global_info):
 
     return transaction_global
 
-def transaction_and_textual_info_aggregate(transaction, ):
-    pass
+
+def transaction_and_textual_info_aggregate(transaction, path):
+    # 读取textual数据
+    textual_df = pd.read_csv(path)
+
+    textual_df = textual_df.fillna(0)
+
+    # 确保timestamp和block_timestamp转换为日期格式
+    transaction['block_timestamp'] = pd.to_datetime(transaction['block_timestamp']).dt.date
+    textual_df['timestamp'] = pd.to_datetime(textual_df['timestamp']).dt.date
+
+    # 准备空列表来存储textual数据对应的特征
+    score_list = []
+    comment_list = []
+    positive_list = []
+    negative_list = []
+
+    # 遍历transaction的每一条记录
+    for _, row in tqdm(transaction.iterrows()):
+        transaction_date = row['block_timestamp']
+
+        # 获取对应的textual信息（按天）
+        textual_info = textual_df[textual_df['timestamp'] == transaction_date]
+
+        if not textual_info.empty:
+            # 提取对应日期的特征
+            score_list.append(textual_info['score'].values[0])
+            comment_list.append(textual_info['number_of_comment'].values[0])
+            positive_list.append(textual_info['positive'].values[0])
+            negative_list.append(textual_info['negative'].values[0])
+        else:
+            # 如果没有对应日期的textual信息，则填充None或其他默认值
+            score_list.append(0)
+            comment_list.append(0)
+            positive_list.append(0)
+            negative_list.append(0)
+
+    # 将textual特征添加到transaction数据中
+    transaction['textual_score'] = score_list
+    transaction['textual_comment'] = comment_list
+    transaction['textual_positive'] = positive_list
+    transaction['textual_negative'] = negative_list
+
+    # 返回合并后的DataFrame
+    return transaction
+
 
 def remove_records_after_timestamp(df, timestamp="2024-07-23 00:00:00"):
     # 确保 block_timestamp 列为 datetime 类型
@@ -194,8 +238,8 @@ TEST = False
 if TEST:
     paths = data_path_researcher()
     transaction_path = paths["token_transaction_path"]
-    sampled_tokens = data_combination(num=2000, sparse=True, path=transaction_path)
-    transaction_df = transaction_filter(sampled_tokens, transaction_path)
+    sampled_tokens = data_combination(num=200, sparse=True, path=transaction_path)
+    transaction_df = transaction_filter(sampled_tokens, transaction_path, num=200)
     TEST1 = False
     # transform_save_data(transaction_df)
 
@@ -224,7 +268,12 @@ if TEST:
         transform_save_data(df)
         # print(df)
 
+    TEST4 = False
 
+    if TEST4:
+        textual_formula_path = paths["textual_formula_path"]
+        df = transaction_and_textual_info_aggregate(transaction_df, textual_formula_path)
+        transform_save_data(df)
 
 
 

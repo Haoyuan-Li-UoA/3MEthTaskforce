@@ -15,6 +15,8 @@ def data_path_researcher():
     token_info_general_path = os.path.join(base_path, "3MEthTaskforce Data", "Token Info", "token_general_3880.csv")
     global_data_path = os.path.join(base_path, "3MEthTaskforce Data", "Globa Data")
     textual_data_path = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "Reddit_clean.csv")
+    textual_save_path = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "textual_clean.csv")
+    textual_formula_path = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "textual_formula.csv")
 
     # 返回所有路径
     return {
@@ -22,7 +24,9 @@ def data_path_researcher():
         "token_info_history_path": token_info_history_path,
         "token_info_general_path": token_info_general_path,
         "global_data_path": global_data_path,
-        "textual_data_path": textual_data_path
+        "textual_data_path": textual_data_path,
+        "textual_save_path": textual_save_path,
+        "textual_formula_path":textual_formula_path
     }
 
 # Function 2: data_combination

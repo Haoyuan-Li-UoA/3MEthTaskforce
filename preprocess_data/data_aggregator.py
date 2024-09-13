@@ -3,6 +3,7 @@ from data_selector import data_combination, data_path_researcher
 import os
 import pandas as pd
 from tqdm import tqdm
+from datetime import timedelta
 
 
 # Function 1: transaction_filter
@@ -131,8 +132,100 @@ def global_data_aggregate(path):
     merged_df = fix_global_data(merged_df)
     return merged_df
 
-def textual_data(path):
-    pass
+def clean_data(df):
+    # Step 1: 处理timestamp列，转换为datetime类型，非日期格式的行将设置为NaT
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+
+    # Step 2: 移除无法转换为时间格式的行（即NaT值）
+    df = df.dropna(subset=['timestamp'])
+
+    # Step 3: 检查其余的列是否为数字
+    # 遍历每一列，确保 'score', 'number_of_comment', 'positive', 'negative' 为数字
+    numeric_columns = ['score', 'number_of_comment', 'positive', 'negative']
+
+    for col in numeric_columns:
+        # 将非数字的值转换为NaN
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # Step 4: 移除任何包含NaN的行，确保所有列都有有效值
+    df = df.dropna(subset=numeric_columns)
+
+    return df
+
+
+def check_invalid_timestamps(df):
+    # 将timestamp列转换为datetime格式
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+
+    # 按照timestamp排序
+    df = df.sort_values(by='timestamp').reset_index(drop=True)
+
+    # 确保按天为单位的timestamp，即去除时间部分只保留日期
+    df['timestamp'] = df['timestamp'].dt.floor('D')
+
+    # Step 1: 处理重复的日期，通过对同一天的特征进行加和
+    df = df.groupby('timestamp', as_index=False).sum()
+
+    # Step 2: 生成完整的日期范围
+    full_date_range = pd.date_range(start=df['timestamp'].min(), end=df['timestamp'].max(), freq='D')
+
+    # Step 3: 使用完整的日期范围进行重建数据集，缺失的天数用0填充特征值
+    df = df.set_index('timestamp').reindex(full_date_range).fillna(0).reset_index()
+    df.rename(columns={'index': 'timestamp'}, inplace=True)
+
+    return df
+
+
+
+def textual_data_formula(path, k=0.5):
+    # 读取CSV文件
+    df = pd.read_csv(path, encoding='latin1')
+
+    df = clean_data(df)
+
+    # 新的DataFrame来存储处理后的数据
+    processed_data = []
+
+    # 遍历每一行，处理每个post的生命周期
+    for i in range(len(df)):
+        row = df.iloc[i]
+        score, timestamp, number_of_comment, positive, negative = float(row['score']), row['timestamp'], float(row[
+            'number_of_comment']), float(row['positive']), float(row['negative'])
+
+        # 前三天的特征值保持不变
+        for j in range(3):
+            new_timestamp = timestamp + timedelta(days=j)
+            processed_data.append([score, new_timestamp, number_of_comment, positive, negative])
+
+        # 后四天的特征值按系数k递减
+        for j in range(3, 7):
+            score *= k
+            number_of_comment *= k
+            positive *= k
+            negative *= k
+            new_timestamp = timestamp + timedelta(days=j)
+            processed_data.append([score, new_timestamp, number_of_comment, positive, negative])
+
+        # 如果下一个post的开始时间晚于当前post的第7天之后，需要插入中间的0填充
+        if i + 1 < len(df):
+            next_post_timestamp = df.iloc[i + 1]['timestamp']
+            last_post_day = timestamp + timedelta(days=7)
+            while last_post_day < next_post_timestamp:
+                processed_data.append([0, last_post_day, 0, 0, 0])
+                last_post_day += timedelta(days=1)
+
+    # 创建处理后的DataFrame
+    processed_df = pd.DataFrame(processed_data,
+                                columns=['score', 'timestamp', 'number_of_comment', 'positive', 'negative'])
+
+    processed_df = check_invalid_timestamps(processed_df)
+
+    return processed_df
+
+
+
+
+
 
 TEST = False
 
@@ -175,3 +268,11 @@ if TEST:
         global_data_df = global_data_aggregate(global_data_path)
         print("Global Data Dataframe:", global_data_df)
 
+    TEST5 = False
+
+    if TEST5:
+
+        textual_data_save = paths["textual_save_path"]
+        df = textual_data_formula(textual_data_save, 0.5)
+        # invalid_timestamp_rows = check_invalid_timestamps(textual_data_save)
+        df.to_csv(paths["textual_formula_path"], index=False)
