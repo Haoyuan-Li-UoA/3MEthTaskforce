@@ -159,6 +159,48 @@ def transaction_and_textual_info_aggregate(transaction, path):
     return transaction
 
 
+def common_textual_info_aggregate(transaction, path):
+    # 读取textual数据
+    textual_df = pd.read_csv(path)
+
+    textual_df = textual_df.fillna(0)
+
+    # 确保timestamp和block_timestamp转换为日期格式
+    transaction['block_timestamp'] = pd.to_datetime(transaction['block_timestamp']).dt.date
+    textual_df['timestamp'] = pd.to_datetime(textual_df['timestamp']).dt.date
+
+    # 准备空列表来存储textual数据对应的特征
+    score_list = []
+    comment_list = []
+    sentiment_list = []
+
+    # 遍历transaction的每一条记录
+    for _, row in tqdm(transaction.iterrows()):
+        transaction_date = row['block_timestamp']
+
+        # 获取对应的textual信息（按天）
+        textual_info = textual_df[textual_df['timestamp'] == transaction_date]
+
+        if not textual_info.empty:
+            # 提取对应日期的特征
+            score_list.append(textual_info['score'].values[0])
+            comment_list.append(textual_info['number_of_comment'].values[0])
+            sentiment_list.append(textual_info['sentiment'].values[0])
+        else:
+            # 如果没有对应日期的textual信息，则填充None或其他默认值
+            score_list.append(0)
+            comment_list.append(0)
+            sentiment_list.append(0)
+
+    # 将textual特征添加到transaction数据中
+    transaction['textual_score'] = score_list
+    transaction['textual_comment'] = comment_list
+    transaction['sentiment'] = sentiment_list
+
+    # 返回合并后的DataFrame
+    return transaction
+
+
 def remove_records_after_timestamp(df, timestamp="2024-07-23 00:00:00"):
     # 确保 block_timestamp 列为 datetime 类型
     df['block_timestamp'] = pd.to_datetime(df['block_timestamp'])
@@ -190,7 +232,8 @@ def create_or_get_feature_folder(feature_combination):
     # 5. 返回路径
     return feature_folder_path
 
-def transform_save_data(data, path="./", feature_combination='test'):
+
+def transform_save_data(data, feature_combination='test', task_num=1):
 
     data = data.sort_values(by='block_timestamp', ascending=True)
 

@@ -96,6 +96,35 @@ class MLPClassifier(nn.Module):
         return self.fc3(x)
 
 
+class MLPRegressor(nn.Module):
+    def __init__(self, input_dim: int, dropout: float = 0.1):
+        """
+        Multi-Layer Perceptron Regressor for predicting token prices.
+        :param input_dim: int, dimension of GNN embedding (input)
+        :param dropout: float, dropout rate
+        """
+        super().__init__()
+        self.fc1 = nn.Linear(input_dim, 80)
+        self.fc2 = nn.Linear(80, 10)
+        self.fc3 = nn.Linear(10, 1)  # Output is a single value (token price)
+        self.act = nn.ReLU()         # Activation function remains ReLU
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x: torch.Tensor):
+        """
+        Multi-layer perceptron forward process for regression
+        :param x: Tensor, shape (*, input_dim)
+        :return: predicted token price (Tensor, shape (*, 1))
+        """
+        # Layer 1 with ReLU and Dropout
+        x = self.dropout(self.act(self.fc1(x)))
+        # Layer 2 with ReLU and Dropout
+        x = self.dropout(self.act(self.fc2(x)))
+        # Output layer, no activation (since it's a regression task)
+        return self.fc3(x)
+
+
+
 class MultiHeadAttention(nn.Module):
 
     def __init__(self, node_feat_dim: int, edge_feat_dim: int, time_feat_dim: int,

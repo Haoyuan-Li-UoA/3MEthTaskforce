@@ -1,9 +1,13 @@
 from data_selector import data_combination, data_path_researcher
 from data_aggregator import transaction_filter, token_recording_filter, token_general_info_filter, global_data_aggregate
-from feature_selector import transform_save_data, transaction_and_token_price_aggregate, transaction_and_token_general_info_aggregate, transaction_and_global_info_aggregate, transaction_and_textual_info_aggregate
+from feature_selector import transform_save_data, transaction_and_token_price_aggregate, transaction_and_token_general_info_aggregate, transaction_and_global_info_aggregate, transaction_and_textual_info_aggregate, common_textual_info_aggregate
+import warnings
+
+# ignore DtypeWarning
+warnings.filterwarnings('ignore')
 
 
-def original_data_treatment(token_num, sparse=True, random_sample=False, dense=False, token_list=None, each_token=200):
+def original_data_treatment(token_num=200, sparse=True, random_sample=False, dense=False, token_list=None, each_token=200):
 
     # pure transaction
     paths = data_path_researcher()
@@ -30,8 +34,8 @@ def original_data_treatment(token_num, sparse=True, random_sample=False, dense=F
     transform_save_data(transaction_global, feature_combination="transaction_global")
 
     # transaction + token general + textual
-    textual_formula_path = paths["textual_formula_path"]
-    transaction_textual = transaction_and_textual_info_aggregate(transaction_df.copy(), textual_formula_path)
+    reddit_posts_sentiment_formal = paths["reddit_posts_sentiment_formal"]
+    transaction_textual = common_textual_info_aggregate(transaction_df.copy(), reddit_posts_sentiment_formal)
     transform_save_data(transaction_textual, feature_combination="transaction_textual")
 
     # transaction + token general + recording + global
@@ -39,7 +43,7 @@ def original_data_treatment(token_num, sparse=True, random_sample=False, dense=F
     transform_save_data(transaction_token_global_recording, feature_combination="transaction_token_global_recording")
 
     # transaction + token general + recording + global + textual
-    transaction_token_all = transaction_and_textual_info_aggregate(transaction_token_global_recording.copy(), textual_formula_path)
+    transaction_token_all = common_textual_info_aggregate(transaction_token_global_recording.copy(), reddit_posts_sentiment_formal)
     transform_save_data(transaction_token_all, feature_combination="transaction_token_all")
 
 

@@ -2,7 +2,7 @@
 
 ```{bash}
 cd preprocess_data/
-python data_sampler.py --token_num 200 --random_sample --each_token 500
+python data_sampler.py --token_num 200 --sparse --each_token 3000
 python preprocess_all_data.py
 ```
 
@@ -23,7 +23,7 @@ python train_link_prediction.py --dataset_name transaction --model_name DyGForme
 **Sub-task: Transaction Type Prediction Train**
 
 ```{bash}
-python train_node_classification.py --dataset_name transaction --model_name DyGFormer --load_test_configs --gpu 0
+python train_node_classification.py --dataset_name crypto --model_name DyGFormer --load_test_configs --gpu 0
 ```
 
 ### Link Prediction Task Evaluation

@@ -1,4 +1,3 @@
-import chardet
 from data_selector import data_combination, data_path_researcher
 import os
 import pandas as pd
@@ -6,27 +5,63 @@ from tqdm import tqdm
 from datetime import timedelta
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+
 # Function 1: transaction_filter
-def transaction_filter(token_list, path, num=200):
-    df_merge = pd.DataFrame()
+def transaction_filter(token_list, path, strategy=3):
+    def strategy_entire_token_recording(token_list, path):
+        df_merge = pd.DataFrame()
 
-    for token in tqdm(token_list):
-        file_path = os.path.join(path, f"{token}.csv")
-        df = pd.read_csv(file_path)
-        df_filtered = df[['token_address', 'from_address', 'to_address', 'value', 'block_timestamp']]
-
-        # 判断 df_filtered 的行数是否小于等于 num
-        if len(df_filtered) <= num:
-            # 如果 df_filtered 的数据少于或等于 num，直接全部合并
+        for token in token_list:
+            file_path = os.path.join(path, f"{token}.csv")
+            df = pd.read_csv(file_path)
+            df_filtered = df[['token_address', 'from_address', 'to_address', 'value', 'block_timestamp']]
             df_merge = pd.concat([df_merge, df_filtered], ignore_index=True)
-        else:
-            # 如果数据多于 num，则进行采样后再合并
-            df_sampled = df_filtered.sample(n=num, replace=False)
+
+        return df_merge
+
+    def strategy_token_transfers_sampler(token_list, path, num=200):
+        df_merge = pd.DataFrame()
+
+        for token in tqdm(token_list):
+            file_path = os.path.join(path, f"{token}.csv")
+            df = pd.read_csv(file_path)
+            df_filtered = df[['token_address', 'from_address', 'to_address', 'value', 'block_timestamp']]
+
+            df_filtered_sorted = df_filtered
+
+            # 数据总数
+            total_data_len = len(df_filtered_sorted)
+
+            # 如果数据多于 num，进行采样
+            if total_data_len > num:
+                # 计算采样步长 n
+                step = total_data_len / num
+
+                # 选择平均隔 n 个样本进行采样的索引
+                sampled_indices = [int(i * step) for i in range(num)]
+
+                # 根据采样的索引获取数据
+                df_sampled = df_filtered_sorted.iloc[sampled_indices]
+            else:
+                # 如果数据量小于等于 num，则直接使用全部数据
+                df_sampled = df_filtered_sorted
+
+            # 合并采样的数据
             df_merge = pd.concat([df_merge, df_sampled], ignore_index=True)
 
-    return df_merge
+        return df_merge
+
+    def strategy_time_zone_by_posts(token_list, path, time_zone):
+
+        return
 
 
+
+    return
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Function 2: token_recording_filter
 def token_recording_filter(token_list, path):
     df_dict = {}
@@ -132,6 +167,7 @@ def global_data_aggregate(path):
     merged_df = fix_global_data(merged_df)
     return merged_df
 
+
 def clean_data(df):
     # Step 1: 处理timestamp列，转换为datetime类型，非日期格式的行将设置为NaT
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
@@ -176,7 +212,7 @@ def check_invalid_timestamps(df):
     return df
 
 
-
+# ----------------------------------------------------------------------------------------------------------------------
 def textual_data_formula(path, k=0.5):
     # 读取CSV文件
     df = pd.read_csv(path, encoding='latin1')
@@ -221,13 +257,55 @@ def textual_data_formula(path, k=0.5):
     processed_df = check_invalid_timestamps(processed_df)
 
     return processed_df
+# ----------------------------------------------------------------------------------------------------------------------
 
 
+def common_sentiment_textual_data_formula(path, k=0.5):
+    # 读取CSV文件
+    df = pd.read_csv(path)
+
+    df = clean_data(df)
+
+    # 新的DataFrame来存储处理后的数据
+    processed_data = []
+
+    # 遍历每一行，处理每个post的生命周期
+    for i in range(len(df)):
+        row = df.iloc[i]
+        score, timestamp, number_of_comment, sentiment= float(row['score']), row['timestamp'], float(row[
+            'number_of_comment']), float(row['positive'])
+
+        # 前三天的特征值保持不变
+        for j in range(3):
+            new_timestamp = timestamp + timedelta(days=j)
+            processed_data.append([score, new_timestamp, number_of_comment, sentiment])
+
+        # 后四天的特征值按系数k递减
+        for j in range(3, 7):
+            score *= k
+            number_of_comment *= k
+            sentiment *= k
+            new_timestamp = timestamp + timedelta(days=j)
+            processed_data.append([score, new_timestamp, number_of_comment, sentiment])
+
+        # 如果下一个post的开始时间晚于当前post的第7天之后，需要插入中间的0填充
+        if i + 1 < len(df):
+            next_post_timestamp = df.iloc[i + 1]['timestamp']
+            last_post_day = timestamp + timedelta(days=7)
+            while last_post_day < next_post_timestamp:
+                processed_data.append([0, last_post_day, 0, 0, 0])
+                last_post_day += timedelta(days=1)
+
+    # 创建处理后的DataFrame
+    processed_df = pd.DataFrame(processed_data,
+                                columns=['score', 'timestamp', 'number_of_comment', 'sentiment'])
+
+    processed_df = check_invalid_timestamps(processed_df)
+
+    return processed_df
 
 
-
-
-TEST = False
+TEST = True
 
 if TEST:
     paths = data_path_researcher()
@@ -276,3 +354,10 @@ if TEST:
         df = textual_data_formula(textual_data_save, 0.5)
         # invalid_timestamp_rows = check_invalid_timestamps(textual_data_save)
         df.to_csv(paths["textual_formula_path"], index=False)
+
+    TEST6 = True
+
+    if TEST6:
+
+        pass
+
