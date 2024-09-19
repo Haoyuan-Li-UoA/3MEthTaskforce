@@ -8,11 +8,11 @@ from datetime import timedelta
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Function 1: transaction_filter
-def transaction_filter(token_list, path, strategy=3):
+def transaction_filter(token_list, paths=data_path_researcher(), strategy='time_chunk_sample', from_time='', to_time=''):
     def strategy_entire_token_recording(token_list, path):
         df_merge = pd.DataFrame()
 
-        for token in token_list:
+        for token in tqdm(token_list):
             file_path = os.path.join(path, f"{token}.csv")
             df = pd.read_csv(file_path)
             df_filtered = df[['token_address', 'from_address', 'to_address', 'value', 'block_timestamp']]
@@ -20,45 +20,67 @@ def transaction_filter(token_list, path, strategy=3):
 
         return df_merge
 
-    def strategy_token_transfers_sampler(token_list, path, num=200):
+    def strategy_token_time_chunk_sample(token_list, path, from_time, to_time):
+        # 初始化一个空的DataFrame用于存储合并的数据
         df_merge = pd.DataFrame()
 
-        for token in tqdm(token_list):
-            file_path = os.path.join(path, f"{token}.csv")
-            df = pd.read_csv(file_path)
-            df_filtered = df[['token_address', 'from_address', 'to_address', 'value', 'block_timestamp']]
+        # 确保to在2024年7月19日之前
+        deadline = pd.to_datetime("2024-07-19")
+        deadline = deadline.tz_localize('UTC')
+        assert to_time <= deadline, "TimePeriodError: 'to' should be the time before 19/07/2024"
 
-            df_filtered_sorted = df_filtered
+        # 循环处理每个token地址
+        for token_address in tqdm(token_list):
+            # 构造文件路径
+            file_path = os.path.join(path, f"{token_address}.csv")
 
-            # 数据总数
-            total_data_len = len(df_filtered_sorted)
+            # 读取CSV文件
+            if os.path.exists(file_path):
+                df = pd.read_csv(file_path)
 
-            # 如果数据多于 num，进行采样
-            if total_data_len > num:
-                # 计算采样步长 n
-                step = total_data_len / num
+                # 保留需要的列
+                df = df[['token_address', 'from_address', 'to_address', 'value', 'block_timestamp']]
 
-                # 选择平均隔 n 个样本进行采样的索引
-                sampled_indices = [int(i * step) for i in range(num)]
+                # 将block_timestamp转换为日期时间格式
+                df['block_timestamp'] = pd.to_datetime(df['block_timestamp'])
 
-                # 根据采样的索引获取数据
-                df_sampled = df_filtered_sorted.iloc[sampled_indices]
-            else:
-                # 如果数据量小于等于 num，则直接使用全部数据
-                df_sampled = df_filtered_sorted
+                # 判断时间chunk的范围
+                min_time = df['block_timestamp'].min()
+                max_time = df['block_timestamp'].max()
 
-            # 合并采样的数据
-            df_merge = pd.concat([df_merge, df_sampled], ignore_index=True)
+                # 根据不同情况采样
+                if from_time >= min_time and to_time <= max_time:
+                    df_sample = df[(df['block_timestamp'] >= from_time) & (df['block_timestamp'] <= to_time)]
+                elif from_time > max_time:
+                    continue  # from超出了最大时间，跳过该文件
+                elif from_time < min_time and to_time <= max_time:
+                    df_sample = df[df['block_timestamp'] <= to_time]
+                elif from_time >= min_time and to_time > max_time:
+                    df_sample = df[df['block_timestamp'] >= from_time]
+                else:  # from和to都超出了时间范围，则跳过这个df
+                    continue
+
+                # 将采样结果与合并的DataFrame合并
+                df_merge = pd.concat([df_merge, df_sample], ignore_index=True)
 
         return df_merge
 
-    def strategy_time_zone_by_posts(token_list, path, time_zone):
+    from_time = pd.to_datetime(from_time)
+    to_time = pd.to_datetime(to_time)
 
-        return
+    # 将具有时区信息的时间戳转换为没有时区信息的时间戳
+    from_time = from_time.tz_localize('UTC')
+    to_time = to_time.tz_localize('UTC')
 
+    # 根据选择的strategy调用不同的处理函数
+    if strategy == "entire_token_recording":
+        df = strategy_entire_token_recording(token_list, paths["token_transaction_path"])
+    elif strategy == "time_chunk_sample":
+        df = strategy_token_time_chunk_sample(token_list, paths["token_transaction_path"], from_time, to_time)
+    else:
+        raise ValueError(f"Unsupported strategy: {strategy}")
 
-
-    return
+    return df
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -261,6 +283,47 @@ def textual_data_formula(path, k=0.5):
 
 
 def common_sentiment_textual_data_formula(path, k=0.5):
+    def clean_data(df):
+        # Step 1: 处理timestamp列，转换为datetime类型，非日期格式的行将设置为NaT
+        df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+
+        # Step 2: 移除无法转换为时间格式的行（即NaT值）
+        df = df.dropna(subset=['timestamp'])
+
+        # Step 3: 检查其余的列是否为数字
+        numeric_columns = ['score', 'number_of_comment', 'sentiment']
+
+        for col in numeric_columns:
+            # 将非数字的值转换为NaN
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        # Step 4: 移除任何包含NaN的行，确保所有列都有有效值
+        df = df.dropna(subset=numeric_columns)
+
+        return df
+
+    def check_invalid_timestamps(df):
+        # 将timestamp列转换为datetime格式
+        df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+
+        # 按照timestamp排序
+        df = df.sort_values(by='timestamp').reset_index(drop=True)
+
+        # 确保按天为单位的timestamp，即去除时间部分只保留日期
+        df['timestamp'] = df['timestamp'].dt.floor('D')
+
+        # Step 1: 处理重复的日期，通过对同一天的特征进行加和
+        df = df.groupby('timestamp', as_index=False).sum()
+
+        # Step 2: 生成完整的日期范围
+        full_date_range = pd.date_range(start=df['timestamp'].min(), end=df['timestamp'].max(), freq='D')
+
+        # Step 3: 使用完整的日期范围进行重建数据集，缺失的天数用0填充特征值
+        df = df.set_index('timestamp').reindex(full_date_range).fillna(0).reset_index()
+        df.rename(columns={'index': 'timestamp'}, inplace=True)
+
+        return df
+
     # 读取CSV文件
     df = pd.read_csv(path)
 
@@ -272,40 +335,50 @@ def common_sentiment_textual_data_formula(path, k=0.5):
     # 遍历每一行，处理每个post的生命周期
     for i in range(len(df)):
         row = df.iloc[i]
-        score, timestamp, number_of_comment, sentiment= float(row['score']), row['timestamp'], float(row[
-            'number_of_comment']), float(row['positive'])
+        score, timestamp, number_of_comment, sentiment = float(row['score']), row['timestamp'], float(row[
+            'number_of_comment']), float(row['sentiment'])
 
         # 前三天的特征值保持不变
         for j in range(3):
             new_timestamp = timestamp + timedelta(days=j)
-            processed_data.append([score, new_timestamp, number_of_comment, sentiment])
+            processed_data.append([score, new_timestamp, number_of_comment, sentiment, 1])
 
         # 后四天的特征值按系数k递减
         for j in range(3, 7):
             score *= k
             number_of_comment *= k
-            sentiment *= k
             new_timestamp = timestamp + timedelta(days=j)
-            processed_data.append([score, new_timestamp, number_of_comment, sentiment])
+            processed_data.append([score, new_timestamp, number_of_comment, sentiment, 1])
 
         # 如果下一个post的开始时间晚于当前post的第7天之后，需要插入中间的0填充
         if i + 1 < len(df):
             next_post_timestamp = df.iloc[i + 1]['timestamp']
             last_post_day = timestamp + timedelta(days=7)
             while last_post_day < next_post_timestamp:
-                processed_data.append([0, last_post_day, 0, 0, 0])
+                processed_data.append([0, last_post_day, 0, 0, 1])
                 last_post_day += timedelta(days=1)
 
-    # 创建处理后的DataFrame
-    processed_df = pd.DataFrame(processed_data,
-                                columns=['score', 'timestamp', 'number_of_comment', 'sentiment'])
+    # 将处理后的数据转化为DataFrame
+    processed_df = pd.DataFrame(processed_data, columns=['score', 'timestamp', 'number_of_comment', 'sentiment', 'count'])
 
+    # 将具有相同时间戳的行分组，并对特定列（'sentiment'）取平均值
+    processed_df = processed_df.groupby('timestamp').agg(
+        {'score': 'sum', 'number_of_comment': 'sum', 'sentiment': lambda x: x.sum() / x.count(), 'count': 'sum'}
+    ).reset_index()
+
+    # 对无效的时间戳进行检查（可自定义函数）
     processed_df = check_invalid_timestamps(processed_df)
+
+    # 计算 sentiment 的平均值
+    processed_df['sentiment'] = processed_df['sentiment'] / processed_df['count']
+
+    # 删除 count 列
+    processed_df = processed_df.drop(columns=['count'])
 
     return processed_df
 
 
-TEST = True
+TEST = False
 
 if TEST:
     paths = data_path_researcher()
@@ -355,9 +428,13 @@ if TEST:
         # invalid_timestamp_rows = check_invalid_timestamps(textual_data_save)
         df.to_csv(paths["textual_formula_path"], index=False)
 
-    TEST6 = True
+    TEST6 = False
 
     if TEST6:
 
-        pass
+        reddit_posts_sentiment_llm = paths["reddit_posts_sentiment_llm"]
+        df = common_sentiment_textual_data_formula(reddit_posts_sentiment_llm, 0.5)
+        # invalid_timestamp_rows = check_invalid_timestamps(textual_data_save)
+        df.to_csv(paths["reddit_posts_sentiment_formal"], index=False)
+
 

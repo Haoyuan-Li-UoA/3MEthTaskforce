@@ -233,7 +233,7 @@ def create_or_get_feature_folder(feature_combination):
     return feature_folder_path
 
 
-def transform_save_data(data, feature_combination='test', task_num=1):
+def transform_save_data(data, feature_combination='test'):
 
     data = data.sort_values(by='block_timestamp', ascending=True)
 
@@ -274,6 +274,32 @@ def transform_save_data(data, feature_combination='test', task_num=1):
     path = create_or_get_feature_folder(feature_combination)
 
     standard_data.to_csv(path+file_name, index=False)
+
+    return standard_data
+
+
+def generate_price_prediction_data(data, feature_combination='price_prediction'):
+    # 检查是否存在label列和price列
+    assert 'state_label' in data.columns, "DataFrame must contain the column: state_label"
+    assert 'price' in data.columns, "DataFrame must contain the column: price"
+
+    # 将label列和price列互换位置
+    cols = data.columns.tolist()  # 获取所有列的列表
+    label_idx = cols.index('state_label')  # 获取label列的索引
+    price_idx = cols.index('price')  # 获取price列的索引
+
+    # 交换两列的位置
+    cols[label_idx], cols[price_idx] = cols[price_idx], cols[label_idx]
+    data = data[cols]  # 重新排列DataFrame的列顺序
+
+    # 构建文件名
+    file_name = feature_combination + ".csv"
+
+    # 获取保存路径
+    path = create_or_get_feature_folder(feature_combination)
+
+    # 将数据保存为CSV文件
+    data.to_csv(os.path.join(path, file_name), index=False)
 
 
 TEST = False
