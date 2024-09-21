@@ -221,7 +221,7 @@ def evaluate_model_node_classification(model_name: str, model: nn.Module, neighb
             else:
                 raise ValueError(f"Wrong value for model_name {model_name}!")
             # get predicted probabilities, shape (batch_size, )
-            predicts = model[1](x=batch_src_node_embeddings).squeeze(dim=-1).sigmoid()
+            predicts = model[1](x=batch_dst_node_embeddings).squeeze(dim=-1)
             labels = torch.from_numpy(batch_labels).float().to(predicts.device)
 
             loss = loss_func(input=predicts, target=labels)

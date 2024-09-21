@@ -2,17 +2,25 @@
 
 ```{bash}
 cd preprocess_data/
-python data_sampler.py --strategy time_chunk_sample --luna LUNA --from_time 2022-03-01 --to_time 2022-04-30
+
+python data_sampler.py --strategy entire_token_recording --sparse --token_num 230 --task link --only_consider_buy
+
+[//]: # (python data_sampler.py --strategy time_chunk_sample --luna LUNA  --from_time 2022-05-01 --to_time 2022-05-2 --task link --only_consider_buy)
+[//]: # (python data_sampler.py --strategy time_chunk_sample --luna LUNA --from_time 2022-05-01 --to_time 2022-05-2 --task price_prediction)
+python data_sampler.py --strategy entire_token_recording --sparse --token_num 200 --task price_prediction
 python preprocess_all_data.py
 ```
-
 
 
 ### Dataset Name
 
 ```python 
-DATASETS = ['crypto', 'transaction', 'transaction_token_recording', 'transaction_global', 
+LINKPREDICTION_DATASETS = ['crypto', 'transaction', 'transaction_token_recording', 'transaction_global', 
             'transaction_textual', 'transaction_token_global_recording', 'transaction_token_all']
+
+PRICE_PREDICTION = ['price_prediction_transaction_token_recording',
+            'price_prediction_transaction_token_global_recording', 'price_prediction_transaction_token_all']
+
 
 Model = ['JODIE', 'DyRep', 'TGAT', 'TGN', 'CAWN', 'TCL', 'GraphMixer', 'DyGFormer']
 
@@ -28,13 +36,13 @@ LUNA_Time_Period = ['2022-05-01', '2022-05-30']
 ### Link Prediction Task Train
 
 ```{bash}
-python train_link_prediction.py --dataset_name transaction_token_all --model_name DyGFormer --load_test_configs --gpu 0
+python train_link_prediction.py --dataset_name price_prediction_transaction_token_recording --model_name DyGFormer --load_test_configs --gpu 0
 ```
 
 **Sub-task: Transaction Type Prediction Train**
 
 ```{bash}
-python train_node_classification.py --dataset_name crypto --model_name DyGFormer --load_test_configs --gpu 0
+python train_node_classification.py --dataset_name price_prediction_transaction_token_all --model_name DyGFormer --load_test_configs --gpu 0
 ```
 
 ```{bash}

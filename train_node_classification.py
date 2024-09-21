@@ -117,7 +117,7 @@ if __name__ == "__main__":
         load_model_folder = f"./saved_models/{args.model_name}/{args.dataset_name}/{args.load_model_name}"
         early_stopping = EarlyStopping(patience=0, save_model_folder=load_model_folder,
                                        save_model_name=args.load_model_name, logger=logger, model_name=args.model_name)
-        # early_stopping.load_checkpoint(model, map_location='cpu')
+        early_stopping.load_checkpoint(model, map_location='cpu')
 
         # create the model for the node classification task
         node_classifier = MLPClassifier(input_dim=node_raw_features.shape[1], dropout=args.dropout)
@@ -127,12 +127,12 @@ if __name__ == "__main__":
                     f'{get_parameter_sizes(model) * 4 / 1024} KB, {get_parameter_sizes(model) * 4 / 1024 / 1024} MB.')
 
         # follow previous work, we fine tune the dynamic_backbone and optimize the node_classifier
-        optimizer = create_optimizer(model=model, optimizer_name=args.optimizer, learning_rate=args.learning_rate, weight_decay=args.weight_decay)
+        # optimizer = create_optimizer(model=model, optimizer_name=args.optimizer, learning_rate=args.learning_rate, weight_decay=args.weight_decay)
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------
 
         # follow previous work, we freeze the dynamic_backbone and only optimize the node_classifier
-        # optimizer = create_optimizer(model=model[1], optimizer_name=args.optimizer, learning_rate=args.learning_rate, weight_decay=args.weight_decay)
+        optimizer = create_optimizer(model=model[1], optimizer_name=args.optimizer, learning_rate=args.learning_rate, weight_decay=args.weight_decay)
 
         model = convert_to_gpu(model, device=args.device)
         # put the node raw messages of memory-based models on device
@@ -150,15 +150,15 @@ if __name__ == "__main__":
         early_stopping = EarlyStopping(patience=args.patience, save_model_folder=save_model_folder,
                                        save_model_name=args.save_model_name, logger=logger, model_name=args.model_name)
 
-        loss_func = nn.BCELoss()
+        loss_func = nn.MSELoss()
 
         # set the dynamic_backbone in evaluation mode
-        # model[0].eval()
+        model[0].eval()
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------
 
         # set the dynamic_backbone in train mode
-        model[0].train()
+        # model[0].train()
 
         for epoch in range(args.num_epochs):
 
@@ -217,7 +217,7 @@ if __name__ == "__main__":
                     else:
                         raise ValueError(f"Wrong value for model_name {args.model_name}!")
                 # get predicted probabilities, shape (batch_size, )
-                predicts = model[1](x=batch_src_node_embeddings).squeeze(dim=-1).sigmoid()
+                predicts = model[1](x=batch_dst_node_embeddings).squeeze(dim=-1)
                 labels = torch.from_numpy(batch_labels).float().to(predicts.device)
 
                 loss = loss_func(input=predicts, target=labels)

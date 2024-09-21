@@ -233,7 +233,7 @@ def create_or_get_feature_folder(feature_combination):
     return feature_folder_path
 
 
-def transform_save_data(data, feature_combination='test'):
+def transform_save_data(data, feature_combination='test', only_consider_buy=True):
 
     data = data.sort_values(by='block_timestamp', ascending=True)
 
@@ -249,15 +249,24 @@ def transform_save_data(data, feature_combination='test'):
     records = []
     for _, row in data.iterrows():
         timestamp_unix = int(row['block_timestamp'].timestamp() * 1000)  # 转换为13位时间序列
-
-        for user, state_label in [(row['from_address'], 0), (row['to_address'], 1)]:
-            record = [
-                         user,                    # user
-                         row['token_address'],    # item
-                         timestamp_unix,          # timestamp
-                         state_label              # state_label
-                     ] + list(row[feature_columns])
-            records.append(record)
+        if only_consider_buy:
+            for user, state_label in [(row['to_address'], 1)]:
+                record = [
+                             user,  # user
+                             row['token_address'],  # item
+                             timestamp_unix,  # timestamp
+                             state_label  # state_label
+                         ] + list(row[feature_columns])
+                records.append(record)
+        else:
+            for user, state_label in [(row['from_address'], 0), (row['to_address'], 1)]:
+                record = [
+                            user,                    # user
+                            row['token_address'],    # item
+                            timestamp_unix,          # timestamp
+                            state_label              # state_label
+                        ] + list(row[feature_columns])
+                records.append(record)
 
     # 创建DataFrame
     standard_data = pd.DataFrame(records, columns=['user', 'item', 'timestamp', 'state_label'] + list(feature_columns))
@@ -278,19 +287,53 @@ def transform_save_data(data, feature_combination='test'):
     return standard_data
 
 
-def generate_price_prediction_data(data, feature_combination='price_prediction'):
-    # 检查是否存在label列和price列
-    assert 'state_label' in data.columns, "DataFrame must contain the column: state_label"
-    assert 'price' in data.columns, "DataFrame must contain the column: price"
+def generate_price_prediction_data(data, feature_combination='price_prediction', only_consider_buy=True):
 
-    # 将label列和price列互换位置
-    cols = data.columns.tolist()  # 获取所有列的列表
-    label_idx = cols.index('state_label')  # 获取label列的索引
-    price_idx = cols.index('price')  # 获取price列的索引
+    data = data.sort_values(by='block_timestamp', ascending=True)
 
-    # 交换两列的位置
-    cols[label_idx], cols[price_idx] = cols[price_idx], cols[label_idx]
-    data = data[cols]  # 重新排列DataFrame的列顺序
+    data = remove_records_after_timestamp(data)
+
+    # 3. 归一化非基本列
+    basic_columns = ['token_address', 'from_address', 'to_address', 'block_timestamp', 'price']
+    feature_columns = data.columns.difference(basic_columns)
+
+    # 4. 创建新的标准数据帧
+    records = []
+    for _, row in data.iterrows():
+        timestamp_unix = int(row['block_timestamp'].timestamp() * 1000)  # 转换为13位时间序列
+        if only_consider_buy:
+            for user, state_label in [(row['to_address'], 1)]:
+                record = [
+                            user,                    # user
+                            row['token_address'],    # item
+                            timestamp_unix,          # timestamp
+                            row['price'],            # price
+                            state_label              # state_label
+                        ] + list(row[feature_columns])
+                records.append(record)
+        else:
+            for user, state_label in [(row['from_address'], 0), (row['to_address'], 1)]:
+                record = [
+                            user,                    # user
+                            row['token_address'],    # item
+                            timestamp_unix,          # timestamp
+                            row['price'],            # price
+                            state_label              # state_label
+                        ] + list(row[feature_columns])
+                records.append(record)
+
+    # 创建DataFrame
+    standard_data = pd.DataFrame(records, columns=['user', 'item', 'timestamp', 'price', 'state_label'] + list(feature_columns))
+
+    # 5. 将user address 和 item address 转换为数字
+    user_to_id = {user: idx for idx, user in enumerate(standard_data['user'].unique())}
+    item_to_id = {item: idx for idx, item in enumerate(standard_data['item'].unique())}
+
+    standard_data['user'] = standard_data['user'].map(user_to_id)
+    standard_data['item'] = standard_data['item'].map(item_to_id)
+
+    scaler = MinMaxScaler()
+    standard_data[feature_columns] = scaler.fit_transform(standard_data[feature_columns])
 
     # 构建文件名
     file_name = feature_combination + ".csv"
@@ -299,7 +342,7 @@ def generate_price_prediction_data(data, feature_combination='price_prediction')
     path = create_or_get_feature_folder(feature_combination)
 
     # 将数据保存为CSV文件
-    data.to_csv(os.path.join(path, file_name), index=False)
+    standard_data.to_csv(os.path.join(path, file_name), index=False)
 
 
 TEST = False

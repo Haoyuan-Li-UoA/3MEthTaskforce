@@ -217,9 +217,6 @@ if __name__ == "__main__":
                     else:
                         raise ValueError(f"Wrong value for model_name {args.model_name}!")
                 # get predicted probabilities, shape (batch_size, )
-
-#----------------------------------------------------------------------------------------------------------------------------------------------------------
-
                 predicts = model[1](x=batch_dst_node_embeddings).squeeze(dim=-1)
                 labels = torch.from_numpy(batch_labels).float().to(predicts.device)
 
@@ -250,7 +247,6 @@ if __name__ == "__main__":
                                                                              loss_func=loss_func,
                                                                              num_neighbors=args.num_neighbors,
                                                                              time_gap=args.time_gap)
-# ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
             logger.info(f'Epoch: {epoch + 1}, learning rate: {optimizer.param_groups[0]["lr"]}, train loss: {train_total_loss:.4f}')
             for metric_name in train_metrics.keys():

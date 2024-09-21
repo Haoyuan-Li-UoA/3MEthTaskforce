@@ -3,7 +3,14 @@ import sys
 import torch
 
 DATASETS = ['crypto', 'transaction', 'transaction_token_recording', 'transaction_global',
-            'transaction_textual', 'transaction_token_global_recording', 'transaction_token_all']
+            'transaction_textual', 'transaction_token_global_recording', 'transaction_token_all',
+            'price_prediction_transaction_token_recording',
+            'price_prediction_transaction_token_global_recording', 'price_prediction_transaction_token_all'
+            ]
+
+PRICE_PREDICTION = ['price_prediction_transaction_token_recording',
+            'price_prediction_transaction_token_global_recording', 'price_prediction_transaction_token_all']
+
 Model = ['JODIE', 'DyRep', 'TGAT', 'TGN', 'CAWN', 'TCL', 'GraphMixer', 'DyGFormer']
 
 
@@ -30,8 +37,8 @@ def get_link_prediction_args(is_evaluation: bool = False):
     parser.add_argument('--num_heads', type=int, default=2, help='number of heads used in attention layer')
     parser.add_argument('--num_layers', type=int, default=2, help='number of model layers')
     parser.add_argument('--walk_length', type=int, default=1, help='length of each random walk')
-    # parser.add_argument('--time_gap', type=int, default=2000, help='time gap for neighbors to compute node features')
-    parser.add_argument('--time_gap', type=int, default=604800, help='time gap for neighbors to compute node features')
+    parser.add_argument('--time_gap', type=int, default=86400, help='time gap for neighbors to compute node features')
+    # parser.add_argument('--time_gap', type=int, default=604800, help='time gap for neighbors to compute node features')
     parser.add_argument('--time_feat_dim', type=int, default=100, help='dimension of the time embedding')
     parser.add_argument('--position_feat_dim', type=int, default=172, help='dimension of the position embedding')
     parser.add_argument('--edge_bank_memory_mode', type=str, default='unlimited_memory', help='how memory of EdgeBank works',
@@ -48,8 +55,8 @@ def get_link_prediction_args(is_evaluation: bool = False):
     parser.add_argument('--optimizer', type=str, default='Adam', choices=['SGD', 'Adam', 'RMSprop'], help='name of optimizer')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='weight decay')
     parser.add_argument('--patience', type=int, default=20, help='patience for early stopping')
-    parser.add_argument('--val_ratio', type=float, default=0.15, help='ratio of validation set')
-    parser.add_argument('--test_ratio', type=float, default=0.15, help='ratio of test set')
+    parser.add_argument('--val_ratio', type=float, default=0.1, help='ratio of validation set')
+    parser.add_argument('--test_ratio', type=float, default=0.1, help='ratio of test set')
     parser.add_argument('--num_runs', type=int, default=3, help='number of runs')
     parser.add_argument('--test_interval_epochs', type=int, default=10, help='how many epochs to perform testing once')
     parser.add_argument('--negative_sample_strategy', type=str, default='inductive', choices=['random', 'historical', 'inductive'],
@@ -137,7 +144,7 @@ def get_node_classification_args():
     """
     # arguments
     parser = argparse.ArgumentParser('Interface for the node classification task')
-    parser.add_argument('--dataset_name', type=str, help='dataset to be used', default='crypto', choices=DATASETS)
+    parser.add_argument('--dataset_name', type=str, help='dataset to be used', default='crypto', choices=PRICE_PREDICTION)
     parser.add_argument('--batch_size', type=int, default=200, help='batch size')
     parser.add_argument('--model_name', type=str, default='DyGFormer', help='name of the model',
                         choices=['JODIE', 'DyRep', 'TGAT', 'TGN', 'CAWN', 'TCL', 'GraphMixer', 'DyGFormer'])
@@ -151,7 +158,8 @@ def get_node_classification_args():
     parser.add_argument('--num_heads', type=int, default=2, help='number of heads used in attention layer')
     parser.add_argument('--num_layers', type=int, default=2, help='number of model layers')
     parser.add_argument('--walk_length', type=int, default=1, help='length of each random walk')
-    parser.add_argument('--time_gap', type=int, default=604800, help='time gap for neighbors to compute node features')
+    parser.add_argument('--time_gap', type=int, default=2000, help='time gap for neighbors to compute node features')
+    # parser.add_argument('--time_gap', type=int, default=604800, help='time gap for neighbors to compute node features')
     parser.add_argument('--time_feat_dim', type=int, default=100, help='dimension of the time embedding')
     parser.add_argument('--position_feat_dim', type=int, default=172, help='dimension of the position embedding')
     parser.add_argument('--patch_size', type=int, default=1, help='patch size')
@@ -164,8 +172,8 @@ def get_node_classification_args():
     parser.add_argument('--optimizer', type=str, default='Adam', choices=['SGD', 'Adam', 'RMSprop'], help='name of optimizer')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='weight decay')
     parser.add_argument('--patience', type=int, default=20, help='patience for early stopping')
-    parser.add_argument('--val_ratio', type=float, default=0.15, help='ratio of validation set')
-    parser.add_argument('--test_ratio', type=float, default=0.15, help='ratio of test set')
+    parser.add_argument('--val_ratio', type=float, default=0.1, help='ratio of validation set')
+    parser.add_argument('--test_ratio', type=float, default=0.1, help='ratio of test set')
     parser.add_argument('--num_runs', type=int, default=3, help='number of runs')
     parser.add_argument('--test_interval_epochs', type=int, default=10, help='how many epochs to perform testing once')
     parser.add_argument('--load_test_configs', action='store_true', default=False, help='whether to load the best configurations')
@@ -177,7 +185,7 @@ def get_node_classification_args():
         parser.print_help()
         sys.exit()
 
-    assert args.dataset_name in DATASETS, f'Wrong value for dataset_name {args.dataset_name}!'
+    assert args.dataset_name in PRICE_PREDICTION, f'Wrong value for dataset_name {args.dataset_name}!'
     if args.load_test_configs:
         load_node_classification_test_configs(args=args)
 

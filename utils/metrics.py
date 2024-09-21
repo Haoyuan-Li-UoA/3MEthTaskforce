@@ -1,5 +1,5 @@
 import torch
-from sklearn.metrics import average_precision_score, roc_auc_score
+from sklearn.metrics import average_precision_score, roc_auc_score, mean_squared_error, mean_absolute_error
 
 
 def get_link_prediction_metrics(predicts: torch.Tensor, labels: torch.Tensor):
@@ -10,6 +10,7 @@ def get_link_prediction_metrics(predicts: torch.Tensor, labels: torch.Tensor):
     :return:
         dictionary of metrics {'metric_name_1': metric_1, ...}
     """
+
     predicts = predicts.cpu().detach().numpy()
     labels = labels.cpu().numpy()
 
@@ -27,10 +28,12 @@ def get_node_classification_metrics(predicts: torch.Tensor, labels: torch.Tensor
     :return:
         dictionary of metrics {'metric_name_1': metric_1, ...}
     """
+
     predicts = predicts.cpu().detach().numpy()
     labels = labels.cpu().numpy()
 
-    average_precision = average_precision_score(y_true=labels, y_score=predicts)
-    roc_auc = roc_auc_score(y_true=labels, y_score=predicts)
+    mse = mean_squared_error(y_true=labels, y_pred=predicts)
+    # mae = mean_absolute_error(y_true=labels, y_pred=predicts)
+    # roc_auc = roc_auc_score(y_true=labels, y_score=predicts)
 
-    return {'average_precision': average_precision, 'roc_auc': roc_auc}
+    return {'mean_squared_error': mse}

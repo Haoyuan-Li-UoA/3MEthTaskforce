@@ -141,7 +141,9 @@ if __name__ == "__main__":
         early_stopping = EarlyStopping(patience=args.patience, save_model_folder=save_model_folder,
                                        save_model_name=args.save_model_name, logger=logger, model_name=args.model_name)
 
-        loss_func = nn.BCELoss()
+# ----------------------------------------------------------------------------------------------------------------------
+        # loss_func = nn.BCELoss()
+        loss_func = nn.BCEWithLogitsLoss()
 
         for epoch in range(args.num_epochs):
 
@@ -160,9 +162,10 @@ if __name__ == "__main__":
             train_idx_data_loader_tqdm = tqdm(train_idx_data_loader, ncols=120)
             for batch_idx, train_data_indices in enumerate(train_idx_data_loader_tqdm):
                 train_data_indices = train_data_indices.numpy()
-                batch_src_node_ids, batch_dst_node_ids, batch_node_interact_times, batch_edge_ids = \
+                batch_src_node_ids, batch_dst_node_ids, batch_node_interact_times, batch_edge_ids, batch_labels = \
                     train_data.src_node_ids[train_data_indices], train_data.dst_node_ids[train_data_indices], \
-                    train_data.node_interact_times[train_data_indices], train_data.edge_ids[train_data_indices]
+                    train_data.node_interact_times[train_data_indices], train_data.edge_ids[train_data_indices], \
+                    train_data.labels[train_data_indices]
 
                 _, batch_neg_dst_node_ids = train_neg_edge_sampler.sample(size=len(batch_src_node_ids))
                 batch_neg_src_node_ids = batch_src_node_ids
@@ -241,15 +244,18 @@ if __name__ == "__main__":
                                                                           node_interact_times=batch_node_interact_times)
                 else:
                     raise ValueError(f"Wrong value for model_name {args.model_name}!")
+# ----------------------------------------------------------------------------------------------------------------------
+
                 # get positive and negative probabilities, shape (batch_size, )
                 positive_probabilities = model[1](input_1=batch_src_node_embeddings, input_2=batch_dst_node_embeddings).squeeze(dim=-1).sigmoid()
                 negative_probabilities = model[1](input_1=batch_neg_src_node_embeddings, input_2=batch_neg_dst_node_embeddings).squeeze(dim=-1).sigmoid()
 
                 predicts = torch.cat([positive_probabilities, negative_probabilities], dim=0)
                 labels = torch.cat([torch.ones_like(positive_probabilities), torch.zeros_like(negative_probabilities)], dim=0)
+                
+                loss1 = loss_func(input=predicts, target=labels)
 
-                loss = loss_func(input=predicts, target=labels)
-
+                loss = loss1
                 train_losses.append(loss.item())
 
                 train_metrics.append(get_link_prediction_metrics(predicts=predicts, labels=labels))
@@ -258,6 +264,30 @@ if __name__ == "__main__":
                 loss.backward()
                 optimizer.step()
 
+# ----------------------------------------------------------------------------------------------------------------------
+                """
+                # 1. 计算正样本的模型输出（不使用sigmoid）
+                positive_logits = model[1](input_1=batch_src_node_embeddings,
+                                           input_2=batch_dst_node_embeddings).squeeze(dim=-1)
+                # 2. 计算负样本的模型输出
+                negative_logits = model[1](input_1=batch_neg_src_node_embeddings,
+                                           input_2=batch_neg_dst_node_embeddings).squeeze(dim=-1)
+                # 3. 拼接模型输出
+                predicts = torch.cat([positive_logits, negative_logits], dim=0)
+                labels_edge = torch.from_numpy(batch_labels).float().to(predicts.device)
+                # 4. 拼接标签
+                labels = torch.cat([labels_edge, torch.zeros_like(negative_logits)], dim=0)
+                # 5. 计算损失函数
+                loss = loss_func(input=predicts, target=labels)
+                # 6. 记录损失和评估指标
+                train_losses.append(loss.item())
+                # train_metrics.append(get_link_prediction_metrics(predicts=predicts.sigmoid(), labels=labels))
+                train_metrics.append(get_link_prediction_metrics(predicts=predicts, labels=labels))
+                # 7. 反向传播和优化
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                """
                 train_idx_data_loader_tqdm.set_description(f'Epoch: {epoch + 1}, train for the {batch_idx + 1}-th batch, train loss: {loss.item()}')
 
                 if args.model_name in ['JODIE', 'DyRep', 'TGN']:
