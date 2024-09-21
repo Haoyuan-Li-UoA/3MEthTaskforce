@@ -18,6 +18,7 @@ def data_path_researcher():
     textual_save_path = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "textual_clean.csv")
     reddit_posts_sentiment_llm = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "reddit_posts_sentiment_llm.csv")
     reddit_posts_sentiment_formal = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "reddit_posts_sentiment_formal.csv")
+    test_sample = os.path.join(base_path, "3MEthTaskforce Data", "Simple Test", "crypto test.csv")
 
     # 返回所有路径
     return {
@@ -28,7 +29,8 @@ def data_path_researcher():
         "textual_data_path": textual_data_path,
         "textual_save_path": textual_save_path,
         "reddit_posts_sentiment_llm": reddit_posts_sentiment_llm,
-        "reddit_posts_sentiment_formal": reddit_posts_sentiment_formal
+        "reddit_posts_sentiment_formal": reddit_posts_sentiment_formal,
+        "test_sample": test_sample
 
     }
 

@@ -2,11 +2,11 @@ from data_selector import data_combination, data_path_researcher
 from data_aggregator import transaction_filter, token_recording_filter, token_general_info_filter, global_data_aggregate
 from feature_selector import transform_save_data, transaction_and_token_price_aggregate, transaction_and_token_general_info_aggregate, transaction_and_global_info_aggregate, generate_price_prediction_data, common_textual_info_aggregate
 import warnings
+import pandas as pd
 
 # ignore DtypeWarning
 warnings.filterwarnings('ignore')
 LUNA_ = ["0xbd31ea8212119f94a611fa969881cba3ea06fa3d"]
-
 LUNA = ["0xa693b19d2931d498c5b318df961919bb4aee87a5", "0xbd31ea8212119f94a611fa969881cba3ea06fa3d",
         "0xb8c77482e45f1f44de1745f52c74426c631bdd52", "0x9ff58f4ffb29fa2266ab25e75e2a8b3503311656",
         "0xae7ab96520de3a18e5e111b5eaab095312d7fe84"]
@@ -22,17 +22,18 @@ def original_data_treatment(token_num=200,
                             task='link',
                             only_consider_buy=True):
 
-    if token_list=='LUNA':
-        token_list = LUNA
-
-    if task=='link':
+    if task == 'link':
         # pure transaction
         print("Start token transaction sampling")
         paths = data_path_researcher()
         transaction_path = paths["token_transaction_path"]
-        sampled_tokens = data_combination(num=token_num, sparse=sparse, random_sample=random_sample, dense=dense,
-                                          token_list=token_list, path=transaction_path)
-        transaction_df = transaction_filter(sampled_tokens, paths, strategy, from_time, to_time)
+        if token_list == 'test_sample':
+            transaction_df = pd.read_csv(paths["test_sample"])
+            sampled_tokens = transaction_df['token_address'].unique().tolist()
+        else:
+            sampled_tokens = data_combination(num=token_num, sparse=sparse, random_sample=random_sample, dense=dense,
+                                              token_list=token_list, path=transaction_path)
+            transaction_df = transaction_filter(sampled_tokens, paths, strategy, from_time, to_time)
 
         # transaction + token general
         print("Statr token general information aggregation")
@@ -79,9 +80,13 @@ def original_data_treatment(token_num=200,
         print("Start token transaction sampling")
         paths = data_path_researcher()
         transaction_path = paths["token_transaction_path"]
-        sampled_tokens = data_combination(num=token_num, sparse=sparse, random_sample=random_sample, dense=dense,
-                                          token_list=token_list, path=transaction_path)
-        transaction_df = transaction_filter(sampled_tokens, paths, strategy, from_time, to_time)
+        if token_list == 'test_sample':
+            transaction_df = pd.read_csv(paths["test_sample"])
+            sampled_tokens = transaction_df['token_address'].unique().tolist()
+        else:
+            sampled_tokens = data_combination(num=token_num, sparse=sparse, random_sample=random_sample, dense=dense,
+                                              token_list=token_list, path=transaction_path)
+            transaction_df = transaction_filter(sampled_tokens, paths, strategy, from_time, to_time)
 
         # transaction + token general
         print("Statr token general information aggregation")
