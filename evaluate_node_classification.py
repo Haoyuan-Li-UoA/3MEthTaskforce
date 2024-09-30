@@ -13,7 +13,7 @@ from models.CAWN import CAWN
 from models.TCL import TCL
 from models.GraphMixer import GraphMixer
 from models.DyGFormer import DyGFormer
-from models.modules import MLPClassifier
+from models.modules import MLPClassifier, MLPRegressor
 from utils.utils import set_random_seed, convert_to_gpu, get_parameter_sizes
 from utils.utils import get_neighbor_sampler
 from evaluate_models_utils import evaluate_model_node_classification
@@ -105,7 +105,7 @@ if __name__ == "__main__":
                                          max_input_sequence_length=args.max_input_sequence_length, device=args.device)
         else:
             raise ValueError(f"Wrong value for model_name {args.model_name}!")
-        node_classifier = MLPClassifier(input_dim=node_raw_features.shape[1], dropout=args.dropout)
+        node_classifier = MLPRegressor(input_dim=node_raw_features.shape[1], dropout=args.dropout)
         model = nn.Sequential(dynamic_backbone, node_classifier)
         logger.info(f'model -> {model}')
         logger.info(f'model name: {args.model_name}, #parameters: {get_parameter_sizes(model) * 4} B, '

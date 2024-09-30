@@ -99,29 +99,31 @@ class MLPClassifier(nn.Module):
 class MLPRegressor(nn.Module):
     def __init__(self, input_dim: int, dropout: float = 0.1):
         """
-        Multi-Layer Perceptron Regressor for predicting token prices.
-        :param input_dim: int, dimension of GNN embedding (input)
+        Multi-Layer Perceptron Regressor for predicting token price.
+        :param input_dim: int, dimension of input
         :param dropout: float, dropout rate
         """
         super().__init__()
         self.fc1 = nn.Linear(input_dim, 80)
         self.fc2 = nn.Linear(80, 10)
-        self.fc3 = nn.Linear(10, 1)  # Output is a single value (token price)
-        self.act = nn.ReLU()         # Activation function remains ReLU
+        self.fc3 = nn.Linear(10, 1)
+        self.act = nn.Softplus()
         self.dropout = nn.Dropout(dropout)
+        self.output_act = nn.Softplus()  # Softplus ensures non-negative output
 
     def forward(self, x: torch.Tensor):
         """
-        Multi-layer perceptron forward process for regression
+        Forward process for MLP Regressor.
         :param x: Tensor, shape (*, input_dim)
-        :return: predicted token price (Tensor, shape (*, 1))
+        :return: Tensor, shape (*, 1)
         """
-        # Layer 1 with ReLU and Dropout
+        # Tensor, shape (*, 80)
         x = self.dropout(self.act(self.fc1(x)))
-        # Layer 2 with ReLU and Dropout
+        # Tensor, shape (*, 10)
         x = self.dropout(self.act(self.fc2(x)))
-        # Output layer, no activation (since it's a regression task)
-        return self.fc3(x)
+        # Tensor, shape (*, 1)
+        x = self.fc3(x)
+        return self.output_act(x)  # Apply Softplus to ensure positive output
 
 
 

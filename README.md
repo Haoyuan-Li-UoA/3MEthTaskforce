@@ -3,7 +3,6 @@
 ```{bash}
 cd preprocess_data/
 python data_sampler.py --token_list test_sample --task link --only_consider_buy
-
 python data_sampler.py --token_list test_sample --task price_prediction --only_consider_buy
 python preprocess_all_data.py
 ```
@@ -12,19 +11,19 @@ python preprocess_all_data.py
 ### Dataset Name
 
 ```python 
-LINKPREDICTION_DATASETS = ['crypto', 'transaction', 'transaction_token_recording', 'transaction_global', 
+LINKPREDICTION_DATASETS_OPTIONS = ['crypto', 'transaction', 'transaction_token_recording', 'transaction_global', 
             'transaction_textual', 'transaction_token_global_recording', 'transaction_token_all', 
             'price_prediction_transaction_token_recording',
             'price_prediction_transaction_token_global_recording', 'price_prediction_transaction_token_all']
 
-PRICE_PREDICTION = ['price_prediction_transaction_token_recording',
+PRICE_PREDICTION_OPTIONS = ['price_prediction_transaction_token_recording',
             'price_prediction_transaction_token_global_recording', 'price_prediction_transaction_token_all']
 
-Model = ['JODIE', 'DyRep', 'TGAT', 'TGN', 'CAWN', 'TCL', 'GraphMixer', 'DyGFormer']
+Model_OPTIONS = ['JODIE', 'DyRep', 'TGAT', 'TGN', 'CAWN', 'TCL', 'GraphMixer', 'DyGFormer']
 
-Strategy = ['time_chunk_sample', 'entire_token_recording']
+Strategy_OPTIONS = ['time_chunk_sample', 'entire_token_recording']
 
-TokenListOption = 'test_sample'
+TokenList_OPTIONS = 'test_sample'
 ```
 
 ### Link Prediction Task Train
@@ -33,7 +32,7 @@ TokenListOption = 'test_sample'
 python train_link_prediction.py --dataset_name transaction --model_name DyGFormer --load_test_configs --gpu 0
 ```
 
-**Sub-task: Transaction Type Prediction Train**
+**Downstream Task Token node Price Prediction**
 
 ```{bash}
 python train_node_classification.py --dataset_name price_prediction_transaction_token_all --model_name DyGFormer --load_test_configs --gpu 0
