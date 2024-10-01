@@ -15,7 +15,7 @@ def parse_args():
     parser.add_argument('--strategy', type=str, default='time_chunk_sample', choices=['time_chunk_sample', 'entire_token_recording'], help="number of recording for each token")
     parser.add_argument('--from_time', type=str, default='2022-05-01 00:00:00', help='Time chunk start date')
     parser.add_argument('--to_time', type=str, default='2022-05-30 00:00:00', help='Time chunk end date')
-    parser.add_argument('--task', type=str, default='link',  choices=['link', 'price_prediction'], help='Task type')
+    parser.add_argument('--task', type=str, default='link',  choices=['link', 'link_and_price_prediction'], help='Task type')
     parser.add_argument('--only_consider_buy', action='store_true', help="data will only consider buying behaviour")
     # 解析命令行参数
     return parser.parse_args()
