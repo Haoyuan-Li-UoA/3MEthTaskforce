@@ -141,8 +141,8 @@ if __name__ == "__main__":
                         f'{get_parameter_sizes(model) * 4 / 1024} KB, {get_parameter_sizes(model) * 4 / 1024 / 1024} MB.')
 
             # load the saved model
-            # load_model_folder = f"./saved_models/{args.model_name}/{args.dataset_name}/{args.load_model_name}"
-            load_model_folder = f"./saved_models/{args.model_name}/price_prediction_transaction_token_all/{args.load_model_name}"
+            load_model_folder = f"./saved_models/{args.model_name}/{args.dataset_name}/{args.load_model_name}"
+            # load_model_folder = f"./saved_models/{args.model_name}/price_prediction_transaction_token_all/{args.load_model_name}"
             early_stopping = EarlyStopping(patience=0, save_model_folder=load_model_folder,
                                            save_model_name=args.load_model_name, logger=logger, model_name=args.model_name)
             early_stopping.load_checkpoint(model, map_location='cpu')

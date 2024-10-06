@@ -3,13 +3,9 @@ import sys
 import torch
 
 DATASETS = ['crypto', 'transaction', 'transaction_token_recording', 'transaction_global',
-            'transaction_textual', 'transaction_token_global_recording', 'transaction_token_all',
-            'price_prediction_transaction_token_recording',
-            'price_prediction_transaction_token_global_recording', 'price_prediction_transaction_token_all'
-            ]
+            'transaction_textual', 'transaction_token_global_recording', 'transaction_token_all']
 
-PRICE_PREDICTION = ['price_prediction_transaction_token_recording',
-            'price_prediction_transaction_token_global_recording', 'price_prediction_transaction_token_all']
+PRICE_PREDICTION = ['transaction_token_recording', 'transaction_token_global_recording', 'transaction_token_all']
 
 Model = ['JODIE', 'DyRep', 'TGAT', 'TGN', 'CAWN', 'TCL', 'GraphMixer', 'DyGFormer']
 
@@ -168,13 +164,13 @@ def get_node_classification_args():
     parser.add_argument('--learning_rate', type=float, default=0.0001, help='learning rate')
     parser.add_argument('--dropout', type=float, default=0.1, help='dropout rate')
     # parser.add_argument('--num_epochs', type=int, default=100, help='number of epochs')
-    parser.add_argument('--num_epochs', type=int, default=70, help='number of epochs')
+    parser.add_argument('--num_epochs', type=int, default=20, help='number of epochs')
     parser.add_argument('--optimizer', type=str, default='Adam', choices=['SGD', 'Adam', 'RMSprop'], help='name of optimizer')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='weight decay')
     parser.add_argument('--patience', type=int, default=20, help='patience for early stopping')
     parser.add_argument('--val_ratio', type=float, default=0.1, help='ratio of validation set')
     parser.add_argument('--test_ratio', type=float, default=0.1, help='ratio of test set')
-    parser.add_argument('--num_runs', type=int, default=3, help='number of runs')
+    parser.add_argument('--num_runs', type=int, default=1, help='number of runs')
     parser.add_argument('--test_interval_epochs', type=int, default=10, help='how many epochs to perform testing once')
     parser.add_argument('--load_test_configs', action='store_true', default=False, help='whether to load the best configurations')
 
