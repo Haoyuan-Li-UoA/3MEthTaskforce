@@ -1,18 +1,18 @@
 {
     "validate metrics": {
-        "average_precision": "0.8321",
-        "roc_auc": "0.8377"
+        "average_precision": "0.6402",
+        "roc_auc": "0.6572"
     },
     "new node validate metrics": {
-        "average_precision": "0.7409",
-        "roc_auc": "0.7214"
+        "average_precision": "0.5166",
+        "roc_auc": "0.4852"
     },
     "test metrics": {
-        "average_precision": "0.8344",
-        "roc_auc": "0.8717"
+        "average_precision": "0.6842",
+        "roc_auc": "0.7100"
     },
     "new node test metrics": {
-        "average_precision": "0.7314",
-        "roc_auc": "0.7716"
+        "average_precision": "0.5300",
+        "roc_auc": "0.5043"
     }
 }

@@ -1,6 +1,6 @@
 from data_selector import data_combination, data_path_researcher
 from data_aggregator import transaction_filter, token_recording_filter, token_general_info_filter, global_data_aggregate
-from feature_selector import transform_save_data, transaction_and_token_price_aggregate, transaction_and_token_general_info_aggregate, transaction_and_global_info_aggregate, generate_price_prediction_data, common_textual_info_aggregate
+from feature_selector import transaction_and_textual_info_aggregate, transform_save_data, transaction_and_token_price_aggregate, transaction_and_token_general_info_aggregate, transaction_and_global_info_aggregate, generate_price_prediction_data, common_textual_info_aggregate
 import warnings
 import pandas as pd
 
@@ -58,8 +58,10 @@ def original_data_treatment(token_num=200,
 
         # transaction + token general + textual
         print("Statr token textual index aggregation")
-        reddit_posts_sentiment_formal = paths["reddit_posts_sentiment_formal"]
-        transaction_textual = common_textual_info_aggregate(transaction_df.copy(), reddit_posts_sentiment_formal)
+        # reddit_posts_sentiment_formal = paths["reddit_posts_sentiment_formal"]
+        reddit_posts_sentiment_formal = paths["reddit_posts_sentiment_llm"]
+        # transaction_textual = common_textual_info_aggregate(transaction_df.copy(), reddit_posts_sentiment_formal)
+        transaction_textual = transaction_and_textual_info_aggregate(transaction_df.copy(), reddit_posts_sentiment_formal)
         transform_save_data(transaction_textual.copy(), feature_combination="transaction_textual", only_consider_buy=only_consider_buy)
 
         # transaction + token general + recording + global
@@ -71,8 +73,8 @@ def original_data_treatment(token_num=200,
 
         # transaction + token general + recording + global + textual
         print("Combination all data")
-        transaction_token_all = common_textual_info_aggregate(transaction_token_global_recording.copy(),
-                                                              reddit_posts_sentiment_formal)
+        # transaction_token_all = common_textual_info_aggregate(transaction_token_global_recording.copy(), reddit_posts_sentiment_formal)
+        transaction_token_all = transaction_and_textual_info_aggregate(transaction_token_global_recording.copy(), reddit_posts_sentiment_formal)
         transform_save_data(transaction_token_all.copy(), feature_combination="transaction_token_all", only_consider_buy=only_consider_buy)
 
     elif task == 'link_and_price_prediction':
@@ -111,8 +113,10 @@ def original_data_treatment(token_num=200,
 
         # transaction + token general + textual
         print("Statr token textual index aggregation")
-        reddit_posts_sentiment_formal = paths["reddit_posts_sentiment_formal"]
-        transaction_textual = common_textual_info_aggregate(transaction_df.copy(), reddit_posts_sentiment_formal)
+        # reddit_posts_sentiment_formal = paths["reddit_posts_sentiment_formal"]
+        reddit_posts_sentiment_formal = paths["reddit_posts_sentiment_llm"]
+        # transaction_textual = common_textual_info_aggregate(transaction_df.copy(), reddit_posts_sentiment_formal)
+        transaction_textual = transaction_and_textual_info_aggregate(transaction_df.copy(), reddit_posts_sentiment_formal)
         transform_save_data(transaction_textual.copy(), feature_combination="transaction_textual", only_consider_buy=only_consider_buy)
 
         # transaction + token general + recording + global
@@ -124,8 +128,8 @@ def original_data_treatment(token_num=200,
 
         # transaction + token general + recording + global + textual
         print("Combination all data")
-        transaction_token_all = common_textual_info_aggregate(transaction_token_global_recording.copy(),
-                                                              reddit_posts_sentiment_formal)
+        # transaction_token_all = common_textual_info_aggregate(transaction_token_global_recording.copy(), reddit_posts_sentiment_formal)
+        transaction_token_all = transaction_and_textual_info_aggregate(transaction_token_global_recording.copy(), reddit_posts_sentiment_formal)
         generate_price_prediction_data(transaction_token_all.copy(), feature_combination="transaction_token_all", only_consider_buy=only_consider_buy)
 
 

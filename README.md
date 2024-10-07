@@ -40,7 +40,7 @@ python train_node_classification.py --dataset_name transaction_token_all --model
 
 ```{bash}
 cd preprocess_data/
-python data_sampler.py --sparse --task link_and_price_prediction --only_consider_buy
+python data_sampler.py --sparse --strategy entire_token_recording --task link_and_price_prediction --only_consider_buy
 python preprocess_all_data.py
 ```
 

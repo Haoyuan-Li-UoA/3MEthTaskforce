@@ -16,7 +16,7 @@ def data_path_researcher():
     global_data_path = os.path.join(base_path, "3MEthTaskforce Data", "Globa Data")
     textual_data_path = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "Reddit_clean.csv")
     textual_save_path = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "textual_clean.csv")
-    reddit_posts_sentiment_llm = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "reddit_posts_sentiment_llm.csv")
+    reddit_posts_sentiment_llm = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "textual_formula.csv")
     reddit_posts_sentiment_formal = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "reddit_posts_sentiment_formal.csv")
     test_sample = os.path.join(base_path, "3MEthTaskforce Data", "Simple Test", "crypto test.csv")
 
