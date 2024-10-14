@@ -122,5 +122,6 @@ processed_data/*
 !processed_data/textual/**
 
 saved_models/
+saved_results/
 
 
