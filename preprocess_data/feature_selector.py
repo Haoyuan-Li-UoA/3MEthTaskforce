@@ -4,6 +4,7 @@ from data_aggregator import transaction_filter, token_recording_filter, token_ge
 from tqdm import tqdm
 from sklearn.preprocessing import MinMaxScaler
 import os
+import numpy as np
 
 
 # Function 1: transaction_and_token_price_aggregate
@@ -244,6 +245,7 @@ def transform_save_data(data, feature_combination='test', only_consider_buy=True
     feature_columns = data.columns.difference(basic_columns)
     scaler = MinMaxScaler()
     data[feature_columns] = scaler.fit_transform(data[feature_columns])
+    # data[feature_columns] = np.log(data[feature_columns] + 1)
 
     # 4. 创建新的标准数据帧
     records = []
@@ -296,6 +298,8 @@ def generate_price_prediction_data(data, feature_combination='price_prediction',
     # 3. 归一化非基本列
     basic_columns = ['token_address', 'from_address', 'to_address', 'block_timestamp', 'price']
     feature_columns = data.columns.difference(basic_columns)
+    scaler = MinMaxScaler(feature_range=(0, 1000))
+    data[feature_columns] = scaler.fit_transform(data[feature_columns])
 
     # 4. 创建新的标准数据帧
     records = []

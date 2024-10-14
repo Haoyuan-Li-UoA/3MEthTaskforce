@@ -59,6 +59,6 @@ python evaluate_node_classification.py --dataset_name transaction --model_name D
 **LUNA EVENT Test**
 ```{bash}
 cd preprocess_data/
-python data_sampler.py --strategy time_chunk_sample --luna LUNA --from_time 2022-05-07 --to_time 2022-05-14
+python data_sampler.py --dense --strategy time_chunk_sample --task link_and_price_prediction --from_time 2022-05-05 --to_time 2022-05-11
 python preprocess_all_data.py
 ```
