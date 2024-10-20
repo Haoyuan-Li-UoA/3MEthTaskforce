@@ -1,8 +1,0 @@
-{
-    "validate metrics": {
-        "mean_squared_error": "566116.0000"
-    },
-    "test metrics": {
-        "mean_squared_error": "962114.3750"
-    }
-}
