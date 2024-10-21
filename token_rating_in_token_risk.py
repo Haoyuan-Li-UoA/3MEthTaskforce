@@ -117,6 +117,8 @@ def calculate_and_plot_risk_aversion(period_list, folder_path, Rf_file):
     plt.show()  # Ensure the plot is displayed
 
 
+print("Start Task 3: Risk in Token Rating")
+
 period_list = [30, 90, 180, 365]
 
 # Get current file path

@@ -197,4 +197,7 @@ if Test:
     for csv_file in dataset:
         for model_type in model:
             for x_value in x:
+                print(f"------------------------------------------{x_value}-------------------------------------------")
+                print(f"------------------------------------------{model_type}----------------------------------------")
+                print(f"------------------------------------------{csv_file}------------------------------------------")
                 main(model_type=model_type, csv_file=csv_file, x=x_value, num_epochs=5000)

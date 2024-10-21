@@ -4,6 +4,8 @@ from tqdm import tqdm
 import numpy as np
 from collections import defaultdict
 
+print("Start Task 3: Risk in Time Period and Luna Case Study")
+
 current_path = os.getcwd()
 
 base_path = os.path.abspath(os.path.join(current_path, ".."))

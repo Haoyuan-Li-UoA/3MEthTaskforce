@@ -1,12 +1,22 @@
+# 3MEthTaskforce: Multi-source Multi-level Multi-token Ethereum Data Platform
 
 
+## Experiment Setup
+
+**Python Version: python 3.8, Torch Version: 2.4, Compute Platform: CUDA 11.8**
+```{bash}
+pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu118
+```
+
+```{bash}
+pip install -r requirements.txt
+```
 
 ## User Behaviour Prediction
 
 ### Data Processing 
 
-#### Sample Strategy example
-**active user address sample**
+**Active User Address Sample**
 ```{bash}
 cd preprocess_data/
 python data_sampler.py --token_list test_sample --task link --only_consider_buy
@@ -40,5 +50,23 @@ python user_behaviour_prediction.py
 
 ```{bash}
 python evaluate_link_prediction.py --dataset_name price_prediction_transaction_token_all --model_name DyGFormer --load_test_configs --gpu 0
+```
+
+## Price Prediction
+
+```{bash}
+python train_token_price_prediction.py
+```
+
+## User Behaviour Marking 
+
+**Risk in Time Period and Luna Case Study**
+```{bash}
+python risk_in_time_period_and_luna_case_study.py
+```
+
+**Token Risk in Token Rating**
+```{bash}
+python token_rating_in_token_risk.py
 ```
 
