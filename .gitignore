@@ -109,10 +109,8 @@ ENV/
 
 # data
 .vscode/
-# 忽略 Origin Data 文件夹中的所有内容
 Origin Data/*
 
-# 但不忽略 crypto 文件夹及其内容
 !Origin Data/crypto/
 !Origin Data/crypto/**
 
@@ -123,9 +121,7 @@ processed_data/*
 
 saved_models/
 
-
 saved_results/
-
 
 price prediction data/
 

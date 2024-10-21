@@ -6,9 +6,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import os
 import json
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
-# 1. 定义 LSTM 模型
 def create_lstm_model(input_size, hidden_size, output_size, num_layers=1):
     class LSTMModel(nn.Module):
         def __init__(self, input_size, hidden_size, output_size, num_layers=1):
@@ -32,7 +34,6 @@ def create_lstm_model(input_size, hidden_size, output_size, num_layers=1):
     return LSTMModel(input_size, hidden_size, output_size, num_layers)
 
 
-# 2. 定义 GRU 模型
 def create_gru_model(input_size, hidden_size, output_size, num_layers=1):
     class GRUModel(nn.Module):
         def __init__(self, input_size, hidden_size, output_size, num_layers=1):
@@ -55,9 +56,8 @@ def create_gru_model(input_size, hidden_size, output_size, num_layers=1):
     return GRUModel(input_size, hidden_size, output_size, num_layers)
 
 
-# 3. 数据集创建函数
 def create_dataset_by_chunks(data, look_back_percent=10, forecast_horizon_percent=3):
-    data = data[:, 1:]  # 忽略数据的第一列
+    data = data[:, 1:]
     look_back = look_back_percent
     forecast_horizon = forecast_horizon_percent
     X, Y = [], []
@@ -69,7 +69,6 @@ def create_dataset_by_chunks(data, look_back_percent=10, forecast_horizon_percen
     return np.array(X), np.array(Y)
 
 
-# 4. 读取数据并预处理
 def load_and_preprocess_data(file_path, x_value):
     df = pd.read_csv(file_path)
     df['timestamp'] = pd.to_datetime(df['timestamp']).view('int64') / 1e9
@@ -91,7 +90,6 @@ def load_and_preprocess_data(file_path, x_value):
     return X_scaled, Y_scaled, df_recent.values, df_recent_log.values
 
 
-# 5. 训练函数
 def train_model(model, X_train, Y_train, num_epochs=100, batch_size=32, learning_rate=0.001):
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -119,7 +117,6 @@ def train_model(model, X_train, Y_train, num_epochs=100, batch_size=32, learning
             print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {running_loss / len(train_loader):.4f}')
 
 
-# 6. 测试函数
 def test_model(model, X_test, Y_test, model_name, dataset, time_range):
     model.eval()
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -132,7 +129,7 @@ def test_model(model, X_test, Y_test, model_name, dataset, time_range):
         file_name = os.path.basename(dataset)
         save_model_file = f'saved_results/{model_name}/{file_name}/{time_range}_mse.json'
         results = {
-            "Test Loss": test_loss.item(),  # 保留4位小数
+            "Test Loss": test_loss.item(),
             "File Name": file_name,
             "Model Name": model_name,
             "Time Range": time_range
@@ -142,7 +139,6 @@ def test_model(model, X_test, Y_test, model_name, dataset, time_range):
             json.dump(results, json_file, indent=4)
 
 
-# 7. 主函数：根据模型选择和参数进行训练和测试
 def main(model_type='LSTM', csv_file='sample_time_series_price.csv', x=0.5, num_epochs=100):
     X_scaled, Y_scaled, origin, df_log = load_and_preprocess_data(csv_file, x)
     look_back = 10
@@ -185,14 +181,18 @@ def main(model_type='LSTM', csv_file='sample_time_series_price.csv', x=0.5, num_
 Test = True
 
 if Test:
-    dataset = ['./price prediction data/price_all.csv',  './price prediction data/price_textual.csv',
-               './price prediction data/price_global_df.csv', './price prediction data/price.csv'
-               ]
+    current_path = os.getcwd()
+
+    base_path = os.path.abspath(os.path.join(current_path, ".."))
+    price_all = os.path.join(base_path, "3MEthTaskforce Data", "Simple Test", "price_all.csv")
+    price_global = os.path.join(base_path, "3MEthTaskforce Data", "Simple Test", "price_global.csv")
+    price_textual = os.path.join(base_path, "3MEthTaskforce Data", "Simple Test", "price_textual.csv")
+    price = os.path.join(base_path, "3MEthTaskforce Data", "Simple Test", "price.csv")
+    dataset = [price_all, price_textual, price_global, price]
 
     model = ['GRU', 'LSTM']
 
     x = [0.8, 0.4, 0.0]
-    # 调用主函数
 
     for csv_file in dataset:
         for model_type in model:
