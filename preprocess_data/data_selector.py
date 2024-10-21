@@ -3,13 +3,13 @@ import random
 
 # Function 1: data_path_researcher
 def data_path_researcher():
-    # 获取当前文件路径
+    # Get the current file path
     current_path = os.getcwd()
 
-    # 回到上上级文件夹
+    # Go back two directories
     base_path = os.path.abspath(os.path.join(current_path, "..", ".."))
 
-    # 定义各个数据文件夹的路径
+    # Define the paths for various data folders
     token_transaction_path = os.path.join(base_path, "3MEthTaskforce Data", "Token Transaction", "Transaction 3880")
     token_info_history_path = os.path.join(base_path, "3MEthTaskforce Data", "Token Info", "Token Historical Data 3880 with return")
     token_info_general_path = os.path.join(base_path, "3MEthTaskforce Data", "Token Info", "token_general_3880.csv")
@@ -20,7 +20,7 @@ def data_path_researcher():
     reddit_posts_sentiment_formal = os.path.join(base_path, "3MEthTaskforce Data", "Reddit Textual", "reddit_posts_sentiment_formal.csv")
     test_sample = os.path.join(base_path, "3MEthTaskforce Data", "Simple Test", "crypto test.csv")
 
-    # 返回所有路径
+    # Return all paths
     return {
         "token_transaction_path": token_transaction_path,
         "token_info_history_path": token_info_history_path,
@@ -31,34 +31,33 @@ def data_path_researcher():
         "reddit_posts_sentiment_llm": reddit_posts_sentiment_llm,
         "reddit_posts_sentiment_formal": reddit_posts_sentiment_formal,
         "test_sample": test_sample
-
     }
 
 # Function 2: data_combination
 def data_combination(num=100, sparse=False, random_sample=False, dense=False, token_list=None, path=""):
     sample_list = []
 
-    # 获取文件夹中的所有文件信息
+    # Retrieve all file information in the folder
     files_info = [(os.path.splitext(f)[0], os.path.getsize(os.path.join(path, f))) for f in os.listdir(path) if f.endswith('.csv')]
 
-    # 按照文件大小进行排序
+    # Sort by file size
     files_info_sorted = sorted(files_info, key=lambda x: x[1])
 
-    # 生成token address列表
+    # Generate token address list
     token_address_list = [file[0] for file in files_info_sorted]
-    assert num <= len(token_address_list), f"num value: {num} should smaller than the length of token_list: {len(token_address_list)}"
+    assert num <= len(token_address_list), f"num value: {num} should be smaller than the length of token_list: {len(token_address_list)}"
 
     if sparse:
-        # 从小文件开始选，直到达到num的数量
+        # Select starting from smaller files until the number 'num' is reached
         sample_list = token_address_list[:num]
     elif random_sample:
-        # 随机抽取num个文件
+        # Randomly select 'num' files
         sample_list = random.sample(token_address_list, num)
     elif dense:
-        # 从大文件开始选
+        # Select starting from larger files
         sample_list = token_address_list[-num:]
     elif token_list:
-        # 验证token_list中的每个元素是否在token_address_list中
+        # Verify that each element in token_list is in token_address_list
         assert all(token in token_address_list for token in token_list), "token address error"
         sample_list = token_list
 

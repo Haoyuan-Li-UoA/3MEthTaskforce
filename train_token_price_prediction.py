@@ -176,8 +176,6 @@ def main(model_type='LSTM', csv_file='sample_time_series_price.csv', x=0.5, num_
     test_model(model, X_test, Y_test, model_type, csv_file, x)
 
 
-# main(model_type='GRU', csv_file='./price prediction data/price.csv', x=0.56, num_epochs=10000)
-
 Test = True
 
 if Test:
@@ -189,6 +187,8 @@ if Test:
     price_textual = os.path.join(base_path, "3MEthTaskforce Data", "Simple Test", "price_textual.csv")
     price = os.path.join(base_path, "3MEthTaskforce Data", "Simple Test", "price.csv")
     dataset = [price_all, price_textual, price_global, price]
+
+    # main(model_type='GRU', csv_file=price, x=0.56, num_epochs=100)
 
     model = ['GRU', 'LSTM']
 

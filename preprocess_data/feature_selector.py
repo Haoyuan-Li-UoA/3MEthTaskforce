@@ -39,21 +39,21 @@ def transaction_and_token_price_aggregate(transaction, token_price):
 
 
 def adjust_values(df):
-    # 确保decimal列存在并且是整数类型
+    # Ensure the 'decimal' column exists and is of integer type
     if 'decimal' in df.columns:
-        # 将decimal列转换为浮点数，避免整数负指数问题
+        # Convert 'decimal' column to float to avoid negative exponent issues with integers
         df['decimal'] = df['decimal'].astype(float)
 
-        # 计算10的负decimal次方
+        # Calculate 10 raised to the negative 'decimal' power
         df['adjustment'] = 10.0 ** (-df['decimal'])
 
-        # 确保value列为数值类型，非数值类型将转换为NaN
+        # Ensure 'value' column is numeric, convert non-numeric types to NaN
         df['value'] = pd.to_numeric(df['value'], errors='coerce')
 
-        # 计算新的value值
+        # Compute new 'value' based on 'adjustment'
         df['value'] = df['value'] * df['adjustment']
 
-        # 删除decimal列和调整列
+        # Drop 'decimal' and 'adjustment' columns
         df = df.drop(columns=['decimal', 'adjustment'])
 
     return df
@@ -66,20 +66,17 @@ def transaction_and_token_general_info_aggregate(transaction, token_general_info
     decimal = []
     trust_score = []
 
-    # 遍历transaction的每一条记录
+    # Iterate through each record in the transaction
     for _, row in tqdm(transaction_general.iterrows()):
         token_address = row['token_address']
 
-        # 获取对应的token general info数据
+        # Get corresponding token general info data
         if token_address in token_general_info:
             decimal.append(token_general_info[token_address][0])
-            trust_score.append(token_general_info[token_address][1])
         else:
             decimal.append(0)
-            trust_score.append(0)
 
     transaction_general['decimal'] = decimal
-    transaction_general['trust_score'] = trust_score
 
     transaction_general = adjust_values(transaction_general)
 
@@ -88,23 +85,23 @@ def transaction_and_token_general_info_aggregate(transaction, token_general_info
 
 # Function 3: transaction_and_global_info_aggregate
 def transaction_and_global_info_aggregate(transaction, global_info):
-    # 确保时间戳格式正确
+    # Ensure timestamp formats are correct
 
     transaction_global = transaction
 
     transaction_global['block_timestamp'] = pd.to_datetime(transaction_global['block_timestamp'])
     global_info['DateTime'] = pd.to_datetime(global_info['DateTime'])
 
-    # 初始化新列
+    # Initialize new columns
     global_columns = global_info.columns.difference(['DateTime'])
     for col in global_columns:
         transaction_global[col] = None
 
-    # 按日期匹配global info数据
+    # Match global info data by date
     for idx, row in tqdm(transaction_global.iterrows()):
         trans_date = row['block_timestamp'].date()
 
-        # 找到对应日期的global info
+        # Find the corresponding global info for the date
         global_record = global_info[global_info['DateTime'].dt.date == trans_date]
 
         if not global_record.empty:
@@ -115,122 +112,122 @@ def transaction_and_global_info_aggregate(transaction, global_info):
 
 
 def transaction_and_textual_info_aggregate(transaction, path):
-    # 读取textual数据
+    # Read textual data
     textual_df = pd.read_csv(path)
 
     textual_df = textual_df.fillna(0)
 
-    # 确保timestamp和block_timestamp转换为日期格式
+    # Ensure 'timestamp' and 'block_timestamp' are converted to date format
     transaction['block_timestamp'] = pd.to_datetime(transaction['block_timestamp']).dt.date
     textual_df['timestamp'] = pd.to_datetime(textual_df['timestamp']).dt.date
 
-    # 准备空列表来存储textual数据对应的特征
+    # Prepare empty lists to store the corresponding textual data features
     score_list = []
     comment_list = []
     positive_list = []
     negative_list = []
 
-    # 遍历transaction的每一条记录
+    # Iterate through each record in the transaction
     for _, row in tqdm(transaction.iterrows()):
         transaction_date = row['block_timestamp']
 
-        # 获取对应的textual信息（按天）
+        # Get the corresponding textual info by day
         textual_info = textual_df[textual_df['timestamp'] == transaction_date]
 
         if not textual_info.empty:
-            # 提取对应日期的特征
+            # Extract the features for the corresponding date
             score_list.append(textual_info['score'].values[0])
             comment_list.append(textual_info['number_of_comment'].values[0])
             positive_list.append(textual_info['positive'].values[0])
             negative_list.append(textual_info['negative'].values[0])
         else:
-            # 如果没有对应日期的textual信息，则填充None或其他默认值
+            # If no textual info is found for the date, fill with None or default values
             score_list.append(0)
             comment_list.append(0)
             positive_list.append(0)
             negative_list.append(0)
 
-    # 将textual特征添加到transaction数据中
+    # Add textual features to the transaction data
     transaction['textual_score'] = score_list
     transaction['textual_comment'] = comment_list
     transaction['textual_positive'] = positive_list
     transaction['textual_negative'] = negative_list
 
-    # 返回合并后的DataFrame
+    # Return the merged DataFrame
     return transaction
 
 
 def common_textual_info_aggregate(transaction, path):
-    # 读取textual数据
+    # Read textual data
     textual_df = pd.read_csv(path)
 
     textual_df = textual_df.fillna(0)
 
-    # 确保timestamp和block_timestamp转换为日期格式
+    # Ensure 'timestamp' and 'block_timestamp' are converted to date format
     transaction['block_timestamp'] = pd.to_datetime(transaction['block_timestamp']).dt.date
     textual_df['timestamp'] = pd.to_datetime(textual_df['timestamp']).dt.date
 
-    # 准备空列表来存储textual数据对应的特征
+    # Prepare empty lists to store the corresponding textual data features
     score_list = []
     comment_list = []
     sentiment_list = []
 
-    # 遍历transaction的每一条记录
+    # Iterate through each record in the transaction
     for _, row in tqdm(transaction.iterrows()):
         transaction_date = row['block_timestamp']
 
-        # 获取对应的textual信息（按天）
+        # Get the corresponding textual info by day
         textual_info = textual_df[textual_df['timestamp'] == transaction_date]
 
         if not textual_info.empty:
-            # 提取对应日期的特征
+            # Extract the features for the corresponding date
             score_list.append(textual_info['score'].values[0])
             comment_list.append(textual_info['number_of_comment'].values[0])
             sentiment_list.append(textual_info['sentiment'].values[0])
         else:
-            # 如果没有对应日期的textual信息，则填充None或其他默认值
+            # If no textual info is found for the date, fill with None or default values
             score_list.append(0)
             comment_list.append(0)
             sentiment_list.append(0)
 
-    # 将textual特征添加到transaction数据中
+    # Add textual features to the transaction data
     transaction['textual_score'] = score_list
     transaction['textual_comment'] = comment_list
     transaction['sentiment'] = sentiment_list
 
-    # 返回合并后的DataFrame
+    # Return the merged DataFrame
     return transaction
 
 
 def remove_records_after_timestamp(df, timestamp="2024-07-23 00:00:00"):
-    # 确保 block_timestamp 列为 datetime 类型
+    # Ensure the 'block_timestamp' column is of datetime type
     df['block_timestamp'] = pd.to_datetime(df['block_timestamp'])
 
-    # 筛选出在指定时间点之后的记录
+    # Filter out records after the specified timestamp
     filtered_df = df[df['block_timestamp'] <= timestamp]
 
     return filtered_df
 
 
 def create_or_get_feature_folder(feature_combination):
-    # 1. 找到上一级路径
+    # 1. Find the parent directory
     parent_dir = os.path.abspath(os.path.join(os.getcwd(), '..'))
 
-    # 2. 进入 Origin Data 文件夹
+    # 2. Navigate to the Origin Data folder
     origin_data_path = os.path.join(parent_dir, 'Origin Data')
     if not os.path.exists(origin_data_path):
         raise FileNotFoundError(f"'Origin Data' folder not exist: {origin_data_path}")
 
-    # 3. 检查是否存在 feature_combination 同名文件夹
+    # 3. Check if a folder with the same name as feature_combination exists
     feature_folder_path = os.path.join(origin_data_path, feature_combination)
 
-    # 4. 如果没有同名文件夹就创建一个，如果有就进入
+    # 4. If no folder exists, create one, otherwise navigate into it
     if not os.path.exists(feature_folder_path):
         os.makedirs(feature_folder_path)
 
     feature_folder_path = feature_folder_path + "./"
 
-    # 5. 返回路径
+    # 5. Return the path
     return feature_folder_path
 
 
@@ -240,17 +237,17 @@ def transform_save_data(data, feature_combination='test', only_consider_buy=True
 
     data = remove_records_after_timestamp(data)
 
-    # 3. 归一化非基本列
+    # 3. Normalize non-basic columns
     basic_columns = ['token_address', 'from_address', 'to_address', 'block_timestamp']
     feature_columns = data.columns.difference(basic_columns)
     scaler = MinMaxScaler()
     data[feature_columns] = scaler.fit_transform(data[feature_columns])
     # data[feature_columns] = np.log(data[feature_columns] + 1)
 
-    # 4. 创建新的标准数据帧
+    # 4. Create a new standardized DataFrame
     records = []
     for _, row in data.iterrows():
-        timestamp_unix = int(row['block_timestamp'].timestamp() * 1000)  # 转换为13位时间序列
+        timestamp_unix = int(row['block_timestamp'].timestamp() * 1000)  # Convert to 13-digit timestamp
         if only_consider_buy:
             for user, state_label in [(row['to_address'], 1)]:
                 record = [
@@ -270,10 +267,10 @@ def transform_save_data(data, feature_combination='test', only_consider_buy=True
                         ] + list(row[feature_columns])
                 records.append(record)
 
-    # 创建DataFrame
+    # Create a DataFrame
     standard_data = pd.DataFrame(records, columns=['user', 'item', 'timestamp', 'state_label'] + list(feature_columns))
 
-    # 5. 将user address 和 item address 转换为数字
+    # 5. Convert user address and item address to numeric
     user_to_id = {user: idx for idx, user in enumerate(standard_data['user'].unique())}
     item_to_id = {item: idx for idx, item in enumerate(standard_data['item'].unique())}
 
@@ -295,16 +292,16 @@ def generate_price_prediction_data(data, feature_combination='price_prediction',
 
     data = remove_records_after_timestamp(data)
 
-    # 3. 归一化非基本列
+    # 3. Normalize non-basic columns
     basic_columns = ['token_address', 'from_address', 'to_address', 'block_timestamp', 'price']
     feature_columns = data.columns.difference(basic_columns)
     scaler = MinMaxScaler(feature_range=(0, 1000))
     data[feature_columns] = scaler.fit_transform(data[feature_columns])
 
-    # 4. 创建新的标准数据帧
+    # 4. Create a new standardized DataFrame
     records = []
     for _, row in data.iterrows():
-        timestamp_unix = int(row['block_timestamp'].timestamp() * 1000)  # 转换为13位时间序列
+        timestamp_unix = int(row['block_timestamp'].timestamp() * 1000)  # Convert to 13-digit timestamp
         if only_consider_buy:
             for user, state_label in [(row['to_address'], 1)]:
                 record = [
@@ -326,10 +323,10 @@ def generate_price_prediction_data(data, feature_combination='price_prediction',
                         ] + list(row[feature_columns])
                 records.append(record)
 
-    # 创建DataFrame
+    # Create a DataFrame
     standard_data = pd.DataFrame(records, columns=['user', 'item', 'timestamp', 'price', 'state_label'] + list(feature_columns))
 
-    # 5. 将user address 和 item address 转换为数字
+    # 5. Convert user address and item address to numeric
     user_to_id = {user: idx for idx, user in enumerate(standard_data['user'].unique())}
     item_to_id = {item: idx for idx, item in enumerate(standard_data['item'].unique())}
 
@@ -339,13 +336,13 @@ def generate_price_prediction_data(data, feature_combination='price_prediction',
     scaler = MinMaxScaler()
     standard_data[feature_columns] = scaler.fit_transform(standard_data[feature_columns])
 
-    # 构建文件名
+    # Construct file name
     file_name = feature_combination + ".csv"
 
-    # 获取保存路径
+    # Get save path
     path = create_or_get_feature_folder(feature_combination)
 
-    # 将数据保存为CSV文件
+    # Save data as CSV file
     standard_data.to_csv(os.path.join(path, file_name), index=False)
 
 
@@ -390,7 +387,4 @@ if TEST:
         textual_formula_path = paths["textual_formula_path"]
         df = transaction_and_textual_info_aggregate(transaction_df, textual_formula_path)
         transform_save_data(df)
-
-
-
 

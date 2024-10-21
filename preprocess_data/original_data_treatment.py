@@ -6,10 +6,11 @@ import pandas as pd
 
 # ignore DtypeWarning
 warnings.filterwarnings('ignore')
-LUNA_ = ["0xbd31ea8212119f94a611fa969881cba3ea06fa3d"]
+
 LUNA = ["0xa693b19d2931d498c5b318df961919bb4aee87a5", "0xbd31ea8212119f94a611fa969881cba3ea06fa3d",
         "0xb8c77482e45f1f44de1745f52c74426c631bdd52", "0x9ff58f4ffb29fa2266ab25e75e2a8b3503311656",
         "0xae7ab96520de3a18e5e111b5eaab095312d7fe84"]
+
 
 def original_data_treatment(token_num=200,
                             sparse=False,
