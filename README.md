@@ -1,9 +1,28 @@
 # 3MEthTaskforce: Multi-source Multi-level Multi-token Ethereum Data Platform
 
+## Dataset Preparation
+
+**If you would like to run the project with 3MEth Dataset, you need at least download "Global Data", "Reddit Textual", "Simple Test", and "Token Info" from http://45.95.187.103:5244/. Then, you need rename the dataset folder as "3MEthTaskforce Data", and Put it in the same directory level as the 3MEthTaskforce project folder, like:**
+
+```{bash}
+$ ls /home/user/documents
+3MEthTaskforce
+3MEthTaskforce Data
+```
+
+```{bash}
+$ ls /home/user/documents/3MEthTaskforce Data
+Globa Data
+Reddit Textual
+Simple Test
+Token Info
+```
+
 
 ## Experiment Setup
 
 **Python Version: python 3.8, Torch Version: 2.4, Compute Platform: CUDA 11.8**
+
 ```{bash}
 pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu118
 ```
@@ -34,11 +53,13 @@ TASK_OPTIONS = ['link', 'link_and_price_prediction']
 TokenList_OPTIONS = ['test_sample']
 ```
 
+**The crypto dataset is test-dataset including in Origin Data folder, you could directly use it to test whether your environment is ready.**
+
 ### User Behaviour Prediction Task Train
 
 **Run one model in one dataset**
 ```{bash}
-python train_link_prediction.py --dataset_name transaction_token_all --model_name DyGFormer --load_test_configs --gpu 0
+python train_link_prediction.py --dataset_name crypto --model_name DyGFormer --load_test_configs --gpu 0
 ```
 
 **Run all models in all datasets**
@@ -49,7 +70,7 @@ python user_behaviour_prediction.py
 ### User Behaviour Prediction Task Evaluation
 
 ```{bash}
-python evaluate_link_prediction.py --dataset_name price_prediction_transaction_token_all --model_name DyGFormer --load_test_configs --gpu 0
+python evaluate_link_prediction.py --dataset_name crypto --model_name DyGFormer --load_test_configs --gpu 0
 ```
 
 ## Price Prediction
