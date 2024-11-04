@@ -22,7 +22,7 @@ Token Info
 
 ## Experiment Setup
 
-**Python Version: python 3.8, Torch Version: 2.4, Compute Platform: CUDA 11.8**
+**OS: Windows 11, Python Version: python 3.8, Torch Version: 2.4, Compute Platform: CUDA 11.8**
 
 ```{bash}
 pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu118
@@ -50,7 +50,7 @@ LINKPREDICTION_DATASETS_OPTIONS = ['crypto', 'transaction', 'transaction_token_r
             'transaction_textual', 'transaction_token_global_recording', 'transaction_token_all']
 Model_OPTIONS = ['JODIE', 'DyRep', 'TGAT', 'TGN', 'TCL', 'DyGFormer']
 Strategy_OPTIONS = ['time_chunk_sample', 'entire_token_recording']
-TASK_OPTIONS = ['link', 'link_and_price_prediction']
+TASK_OPTIONS = ['link']
 TokenList_OPTIONS = ['test_sample']
 ```
 
